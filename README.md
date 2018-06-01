@@ -7,7 +7,7 @@ It's hosted on heroku, you can [find it here](https://candidates-api.herokuapp.c
 
 The API expects documents in JSON format.
 
-#### These are the endpoint implemented:
+#### These are the endpoints implemented:
 
 | Method | Uri                                   | Meaning                    |
 | ------ | :------------------------------------ | :------------------------- |
@@ -18,11 +18,9 @@ The API expects documents in JSON format.
 | PUT    | /candidates/api/v1.0/candidates/id    | Update a candidate         |
 | DELETE | /candidates/api/v1.0/candidates/id    | Delete a candidate         |
 
-
+------
 
 #### And these are the parameters for a candidate:
-
-
 
 | Field      | Mandatory? | Format                      |
 | ---------- | ---------- | --------------------------- |
