@@ -5,6 +5,10 @@ It's developed in **Python**, version 3.6.4, taking advantage of the [Flask](htt
 
 It's hosted on heroku, you can [find it here](https://candidates-api.herokuapp.com/).
 
+The API expects documents in JSON format.
+
+These are the endpoint implemented:
+
 | Method | Uri                                   | Meaning                    |
 | ------ | :------------------------------------ | :------------------------- |
 | GET    | /candidates/api/v1.0/candidates       | Get list of candidates     |
@@ -14,7 +18,7 @@ It's hosted on heroku, you can [find it here](https://candidates-api.herokuapp.c
 | PUT    | /candidates/api/v1.0/candidates/id    | Update a candidate         |
 | DELETE | /candidates/api/v1.0/candidates/id    | Delete a candidate         |
 
-
+And these are the parameters for a candidate:
 
 | Field      | Mandatory? | Format                      |
 | ---------- | ---------- | --------------------------- |
