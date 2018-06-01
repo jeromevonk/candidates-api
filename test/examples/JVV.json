@@ -1,0 +1,14 @@
+{
+	"name" : "Jerome Vergueiro Vonk",
+	"picture" : "TODO",
+	"birthdate" : "18/02/1988",
+	"gender" : "Male",
+	"email" : "vonk@gmail.com",
+	"phone" : "+5511912345678",
+	"address" : "Avenida Paulista, 1",
+	"longitude": 9.96233,
+    "latitude": 49.80404,
+    "tags" : ["engineer", "mecathronics"],
+    "experience" : ["Electronic Arts", "Diebold Nixdorf"],
+    "education" : ["USP", "Udacity"]
+}

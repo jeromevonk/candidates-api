@@ -1,0 +1,14 @@
+{
+	"name" : "Jane Doe",
+	"picture" : "TODO",
+	"birthdate" : "01/01/1980",
+	"gender" : "Female",
+	"email" : "jane@doe.com",
+	"phone" : "+5511987654321",
+	"address" : "Avenida Paulista, 2",
+	"longitude": 9.92547,
+    "latitude": 49.4568,
+    "tags" : ["polyglot"],
+    "experience" : ["Yahoo", "Google"],
+    "education" : ["Unicamp", "UFSCAR"]
+}

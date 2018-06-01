@@ -1,0 +1,1 @@
+web: gunicorn candidates_api:app

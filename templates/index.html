@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Candidates API</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+
+<body>
+
+<div class = "container">
+    <div class = "starter-template">
+        <h1>Candidates API</h1>
+        <p> By Jerome Vonk - May, 2018 </p>
+    </div>
+</div>
+
+<header class="navbar">
+        <div align="center"><div class="container-fluid">
+            <p> Try the following endpoints:  </p>
+            <p> /candidates/api/v1.0/ method = GET </p>
+            <p> /candidates/api/v1.0/insert method = POST </p>
+            <p> /candidates/api/v1.0/batch_insert method = POST </p>
+        </div>
+</header>
+
+
+
+<div class="panel panel-info">
+  <div class="panel-heading">Insert a batch of candidates</div>
+  <div class="panel-body">
+    <div align="center">
+        <p>Upload a zip file containing json files to insert in database</p>
+        
+        <form action="/candidates/api/v1.0/candidates/batch" method="post" enctype="multipart/form-data" >
+            <label class="btn btn-default btn-file">
+                Browse <input type="file" name="zipfile" style="display: none;">
+            </label>
+            <input type="submit" value="Upload" class="btn btn-primary">
+        
+        </form>
+    </div>
+  </div>
+</div>
+
+<div class="panel panel-warning">
+  <div class="panel-heading">Insert a single candidate</div>
+  <div class="panel-body">Name:</div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-heading">Insert a single candidate</div>
+  <div class="panel-body">Name:</div>
+</div>
+
+<div class="panel panel-success">
+  <div class="panel-heading">Insert a single candidate</div>
+  <div class="panel-body">Name:</div>
+</div>
+
+
+</body>
+</html>

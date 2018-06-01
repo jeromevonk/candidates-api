@@ -1,0 +1,29 @@
+# --------------------------------------------------------------------------
+# Get list of all candidates
+# --------------------------------------------------------------------------
+[GET] http://localhost:5000/candidates/api/v1.0/
+c:\curl\bin\curl.exe -i http://localhost:5000/candidates/api/v1.0/
+# --------------------------------------------------------------------------
+# Insert a single candidate
+# --------------------------------------------------------------------------
+[POST] http://localhost:5000/candidates/api/v1.0/insert
+{
+	"name" : "Jerome Vergueiro Vonk",
+	"picture" : "TODO",
+	"birthdate" : "18/02/1988",
+	"gender" : "Male",
+	"email" : "vonkjerome@gmail.com",
+	"phone" : "+5511912345678",
+	"address" : "Avenida Paulista, 1",
+	"longitude": 0,
+    "latitude": 0,
+    "tags" : [],
+    "experience" : [],
+    "education" : []
+}
+c:\curl\bin\curl.exe -i -H "Content-Type: application/json" -X POST -d '{"title":"Read a book"}' http://localhost:5000/candidates/api/v1.0/insert
+
+# --------------------------------------------------------------------------
+# Insert a batch of candidates
+# --------------------------------------------------------------------------
+[POST] http://localhost:5000/candidates/api/v1.0/batch_insert'
