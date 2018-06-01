@@ -7,7 +7,7 @@
 from flask import Flask, jsonify, abort, request, make_response, url_for, render_template
 from zipfile import ZipFile, BadZipfile
 import json
-from database import Database
+from simple_database import SimpleDatabase
 
 app = Flask(__name__, static_url_path = "")
 
@@ -23,9 +23,9 @@ def not_found(error):
     return make_response(jsonify( { 'error': 'Not found' } ), 404)
 
 # ----------------------------------------------------------------------------------
-# Our database
+# Our very simple database (to be replaced by SQLite)
 # ----------------------------------------------------------------------------------       
-db = Database()
+db = SimpleDatabase()
  
 # ----------------------------------------------------------------------------------
 # Index page
@@ -61,28 +61,33 @@ def get_candidate(candidate_id):
 def insert():
     if not request.json:
         abort(400)
-    if not 'name' in request.json or not 'email' in request.json:
+    if not 'name' in request.json:
         abort(400)
         
     # Candidate already in database?
     if db.get_candidate_by_name(request.json['name']) is not None:
         # Client should call update
-        abort(400)
+        return jsonify({'error' : 'Candidate already exists'}), 400
     
     candidate = {
-        'name': request.json['name'],
+        'name': request.json['name'].strip(),
         'picture': request.json.get('picture', ""),
-        'birthdate': request.json.get('birthdate', ""),
-        'gender': request.json.get('gender', ""),
-        'email': request.json.get('email', ""),
+        'birthdate': request.json.get('birthdate', "Unknown"),
+        'gender': request.json.get('gender', "").capitalize(),
+        'email': request.json.get('email', "").strip(),
         'phone': request.json.get('phone', ""),
-        'address': request.json.get('address', ""),
-        'longitude': request.json.get('longitude', ""),
-        'latitude': request.json.get('latitude', ""),
-        'tags': request.json.get('latitude', ""),
-        'experience': request.json.get('latitude', ""),
-        'education': request.json.get('latitude', "")
+        'address': request.json.get('address', "").strip(),
+        'latitude': request.json.get('latitude', "0.0"),
+        'longitude': request.json.get('longitude', "0.0"),
+        'tags': request.json.get('tags', ""),
+        'experience': request.json.get('experience', ""),
+        'education': request.json.get('education', "")
     }
+    
+    # Validate candidate
+    valid, msg = validateCandidate(candidate)
+    if valid == False:
+        return jsonify({'error' : msg}), 400
     
     # Add to database
     id = db.add_candidate(candidate)
@@ -123,7 +128,7 @@ def batch_insert():
         # Add or update candidate in database  
         ret = db.add_or_update(candidate)
             
-        if ret == Database.UPDATED:
+        if ret == SimpleDatabase.UPDATED:
            candidates_updated += 1 
         else:
            candidates_added   += 1
@@ -185,12 +190,70 @@ def delete_candidate(candidate_id):
 # Auxiliar functions
 # ----------------------------------------------------------------------------------  
 def validateCandidate(candidate):
+
+    # Name is mandatory
     if 'name' not in candidate:
-        return False
-    if 'email' not in candidate:
-        return False
+        return False, 'Name is mandatory'
     
-    return True
+    # Email is mandatory. Check for '@'    
+    if 'email' not in candidate:
+        return False, 'Email is mandatory'
+    elif candidate['email'].count('@') != 1:
+        return False, 'Invalid email'
+        
+    # Gender is mandatory and must be 'Male' or 'Female'
+    if 'gender' not in candidate:
+        return False, 'Gender is mandatory'
+    elif candidate['gender'] != 'Male' and candidate['gender'] != 'Female':
+        return False, 'Invalid gender'
+        
+    # Phone is mandatory and should be in the format 5511912345678    
+    if 'phone' not in candidate:
+        return False, 'Phone is mandatory'
+    elif len(candidate['phone']) < 12:
+        return False, 'Phone should be in the format 5511912345678'
+    else:
+        try:
+            float(candidate['phone'])
+        except ValueError:
+            return False, 'Phone should be in the format 5511912345678'
+        
+    # Latitude and longitude are not mandatory, but if present should be floats
+    if 'latitude' in candidate:
+        try:
+            float(candidate['latitude'])
+        except ValueError:
+            return False, 'Latitude should be a float'
+          
+    if 'longitude' in candidate:
+        try:
+            float(candidate['longitude'])
+        except ValueError:
+            return False, 'Longitude should be a float'
+            
+    # Birthdate is not mandatory, but if present should be in the format DD/MM/YYYY
+    if 'birthdate' in candidate:
+        try:
+            (day, month, year) = candidate['birthdate'].split('/');
+
+            if int(day) < 1 or int(day)> 31:
+                return False, 'Invalid day for birthdate'
+                
+            if int(month) < 1 or int(month)> 31:
+                return False, 'Invalid month for birthdate'
+                
+            if int(year) < 1900 or int(year)> 2018:
+                return False, 'Invalid year for birthdate'
+                
+        except:
+            return False, 'Birthdate should be in the format DD/MM/YYYY'
+    
+        
+    # Tags, experience and education are considered optional
+    # They can be inserted later
+    
+    
+    return True, ""
 
     
 # ----------------------------------------------------------------------------------

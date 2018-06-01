@@ -5,9 +5,7 @@ It's developed in **Python**, version 3.6.4, taking advantage of the [Flask](htt
 
 It's hosted on heroku, you can [find it here](https://candidates-api.herokuapp.com/).
 
-
-
-| method | uri                                   | Meaning                    |
+| Method | Uri                                   | Meaning                    |
 | ------ | :------------------------------------ | :------------------------- |
 | GET    | /candidates/api/v1.0/candidates       | Get list of candidates     |
 | GET    | /candidates/api/v1.0/candidates/id    | Get single candidate       |
@@ -17,4 +15,19 @@ It's hosted on heroku, you can [find it here](https://candidates-api.herokuapp.c
 | DELETE | /candidates/api/v1.0/candidates/id    | Delete a candidate         |
 
 
+
+| Field      | Mandatory? | Format                      |
+| ---------- | ---------- | --------------------------- |
+| Name       | Yes        | String                      |
+| Gender     | Yes        | "Male" or "Female"          |
+| Email      | Yes        | String                      |
+| Phone      | Yes        | Only numbers: 5511912345678 |
+| Address    | Yes        | String                      |
+| Latitude   | No         | Float                       |
+| Longitude  | No         | Float                       |
+| Tags       | No         | List of Strings             |
+| Experience | No         | List of Strings             |
+| Education  | No         | List of Strings             |
+| Picture    | No         | Base64                      |
+| Birthdate  | No         | DD/MM/YYYY                  |
 
