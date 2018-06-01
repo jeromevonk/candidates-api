@@ -233,25 +233,27 @@ def validateCandidate(candidate):
             
     # Birthdate is not mandatory, but if present should be in the format DD/MM/YYYY
     if 'birthdate' in candidate:
-        try:
-            (day, month, year) = candidate['birthdate'].split('/');
+        
+        # "Unknown" is acceptable 
+        if candidate['birthdate'] != "Unknown":
+            try:
+                (day, month, year) = candidate['birthdate'].split('/');
 
-            if int(day) < 1 or int(day)> 31:
-                return False, 'Invalid day for birthdate'
-                
-            if int(month) < 1 or int(month)> 31:
-                return False, 'Invalid month for birthdate'
-                
-            if int(year) < 1900 or int(year)> 2018:
-                return False, 'Invalid year for birthdate'
-                
-        except:
-            return False, 'Birthdate should be in the format DD/MM/YYYY'
+                if int(day) < 1 or int(day)> 31:
+                    return False, 'Invalid day for birthdate'
+                    
+                if int(month) < 1 or int(month)> 31:
+                    return False, 'Invalid month for birthdate'
+                    
+                if int(year) < 1900 or int(year)> 2018:
+                    return False, 'Invalid year for birthdate'
+                    
+            except:
+                return False, 'Birthdate should be in the format DD/MM/YYYY'
     
         
     # Tags, experience and education are considered optional
     # They can be inserted later
-    
     
     return True, ""
 
