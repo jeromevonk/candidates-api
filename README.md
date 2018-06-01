@@ -3,7 +3,7 @@ This is an example of a RESTful API for inserting candidates in a database.
 
 It's developed in **Python**, version 3.6.4, taking advantage of the [Flask](http://flask.pocoo.org/) microframework.
 
-It's hosted on heroku, you can find it here.
+It's hosted on heroku, you can [find it here](https://candidates-api.herokuapp.com/).
 
 
 
