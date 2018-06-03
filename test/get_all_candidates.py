@@ -26,6 +26,11 @@ if len(sys.argv) > 1:
 # Get list of candidates
 #-------------------------------------------------------------------------------
 url = URL_BASE + 'candidates'
-r = requests.get(url)
-print(r.status_code)
-print(r.text) 
+
+try:
+    r = requests.get(url)
+    print(r.status_code)
+    print(r.text)
+    
+except requests.exceptions.RequestException as e:
+    print(e)

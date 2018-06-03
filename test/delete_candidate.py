@@ -6,6 +6,7 @@
 
 import requests
 import sys
+from requests.auth import HTTPBasicAuth
 
 #-------------------------------------------------------------------------------
 # Hosted locally or in heroku
@@ -23,9 +24,16 @@ if len(sys.argv) > 1:
 
  
 #-------------------------------------------------------------------------------
-# Get list of candidates
+# Delete one candidate a time
 #-------------------------------------------------------------------------------
-url = URL_BASE + 'candidates/1'
-r = requests.delete(url)
-print(r.status_code)
-print(r.text) 
+
+try:
+    for i in range(1, 4):
+        url = URL_BASE + 'candidates/{}'.format(i)
+        r = requests.delete(url, auth=('user', '123'))
+        print(r.status_code)
+        print(r.text)
+    
+except requests.exceptions.RequestException as e:
+    print(e)
+        

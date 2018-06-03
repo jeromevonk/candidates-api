@@ -4,8 +4,21 @@
 # Created:     01/06/2018
 #-------------------------------------------------------------------------------
 
-import requests
 import sys
+import requests
+import base64
+
+#-------------------------------------------------------------------------------
+# Helper function
+#------------------------------------------------------------------------------- 
+def postCandidate(candidate):
+    try:
+        r = requests.post(url, json = candidate)
+        print(r.status_code)
+        print(r.text)
+        
+    except requests.exceptions.RequestException as e:
+        print(e)
 
 #-------------------------------------------------------------------------------
 # Hosted locally or in heroku
@@ -25,12 +38,37 @@ if len(sys.argv) > 1:
 #-------------------------------------------------------------------------------
 # Insert one candidate with missing information
 #-------------------------------------------------------------------------------
-print("Inserting candidate...")
-candidate = { "name" : "Jerome Vonk", "picture" : "TODO", "birthdate" : "18/02/1988", "gender" : "Male",
-	          "email" : "vonk@gmail.com", "phone" : "+5511912345678", "address" : "Avenida Paulista, 1",
-              "longitude": 0, "latitude": 0, "tags" : [], "experience" : [], "education" : []}
 url = URL_BASE + 'candidates'
-r = requests.post(url, json = candidate)
-print(r.status_code)
-print(r.text)
- 
+candidate = { "name" : "Jerome Vonk", "picture" : "", "birthdate" : "18/02/1988", "gender" : "1",
+	          "email" : "vonk@gmail.com", "phone" : "11912345678", "address" : "Avenida Paulista, 1",
+              "longitude": 0, "latitude": 0, "tags" : [], "experience" : [], "education" : []}
+              
+print("### Inserting candidates...")     
+'''
+# a) Valid
+postCandidate(candidate)
+
+# b) Same name
+candidate['email'] = 'not@thesame.com'
+postCandidate(candidate)
+
+# c) Same email
+candidate['name']  = 'Jerominho Vonk'
+candidate['email'] = 'vonk@gmail.com'
+postCandidate(candidate)
+
+# d) Missing birthdate, latitude, longitude 
+candidate['name']  = 'Missing fields'
+candidate['email'] = 'missing@fields.com'
+candidate.pop('birthdate', None)
+candidate.pop('latitude', None)
+candidate.pop('longitude', None)
+postCandidate(candidate)'''
+
+# e) Insert with picture
+candidate['name']  = 'Jerome with Picture3'
+candidate['email'] = 'jerome@picture3.com'
+with open('jvv.jpg', 'rb') as fi:
+    content = fi.read()
+    candidate['picture'] = base64.b64encode(content)
+    postCandidate(candidate)

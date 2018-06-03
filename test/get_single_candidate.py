@@ -25,7 +25,12 @@ if len(sys.argv) > 1:
 #-------------------------------------------------------------------------------
 # Get list of candidates
 #-------------------------------------------------------------------------------
+#[IMPROVEMENT]: first call get all candidates and then get the ID of wanted candidate
 url = URL_BASE + 'candidates/1'
-r = requests.get(url)
-print(r.status_code)
-print(r.text) 
+
+try:
+    r = requests.get(url)
+    print(r.status_code)
+    print(r.text)
+except requests.exceptions.RequestException as e:
+    print(e)

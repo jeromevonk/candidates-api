@@ -3,9 +3,22 @@
 # Author:      Jerome Vergueiro Vonk
 # Created:     01/06/2018
 #-------------------------------------------------------------------------------
-
 import requests
 import sys
+import pytest
+import copy
+
+#-------------------------------------------------------------------------------
+# Helper function
+#------------------------------------------------------------------------------- 
+def postInvalidCandidate(candidate):
+    try:
+        r = requests.post(url, json = candidate)
+        print(r.text)
+        assert r.status_code == 400
+        
+    except requests.exceptions.RequestException as e:
+        print(e)
 
 #-------------------------------------------------------------------------------
 # Hosted locally or in heroku
@@ -23,14 +36,175 @@ if len(sys.argv) > 1:
 
  
 #-------------------------------------------------------------------------------
-# Insert one candidate with missing information
+# Insert invalid candidates
 #-------------------------------------------------------------------------------
-print("Inserting candidate...")
-candidate = { "name" : "Jerome Vonk", "picture" : "TODO", "birthdate" : "00/02/1988", "gender" : "Male",
-	          "email" : "vonk@gmail.com", "phone" : "+5511912345678", "address" : "Avenida Paulista, 1",
-              "longitude": 0.0, "latitude": 0.0, "tags" : [], "experience" : [], "education" : []}
 url = URL_BASE + 'candidates'
-r = requests.post(url, json = candidate)
-print(r.status_code)
-print(r.text)
- 
+template = { "name" : "Jerome Vonk", "picture" : "TODO", "birthdate" : "00/02/1988", "gender" : "1",
+             "email" : "vonk@gmail.com", "phone" : "11912345678", "address" : "Avenida Paulista, 1",
+             "longitude": -12.75, "latitude": 45.11122, "tags" : [], "experience" : [], "education" : []}
+
+#-------------------------------------------------------------------------------
+# Invalid / missing name
+#------------------------------------------------------------------------------- 
+print("### Inserting candidate(s) with invalid/missing name...")
+invalid_name = copy.deepcopy(template)
+
+# a) Empty
+invalid_name['name'] = ''
+postInvalidCandidate(invalid_name)
+
+# b) Too big
+invalid_name['name'] = 'Nome muito muito muito muito muito muito muito muito muito muito muito muito grande'
+postInvalidCandidate(invalid_name)
+
+# c) Missing name
+invalid_name.pop('name', None)
+postInvalidCandidate(invalid_name)
+
+#-------------------------------------------------------------------------------
+# Missing email
+#-------------------------------------------------------------------------------             
+print("### Inserting candidate(s) with missing email...")
+invalid_email = copy.deepcopy(template)
+
+# a) Empty
+invalid_email['email'] = ''
+postInvalidCandidate(invalid_email)
+
+# b) Too big
+invalid_email['email'] = 'email@muitomuitomuitomuitomuitomuitomuitomuitomuitomuitomuitomuitomuitomuitomuitomuitomuitomuitomuitomuitomuitomuitogrande.com'
+postInvalidCandidate(invalid_email)
+
+# c) Without '.'
+invalid_email['email'] = 'email@acom'
+postInvalidCandidate(invalid_email)
+
+# d) Without '@'
+invalid_email['email'] = 'emaila.com'
+postInvalidCandidate(invalid_email)
+
+# e) Missing name
+invalid_email.pop('email', None)
+postInvalidCandidate(invalid_email)
+
+#-------------------------------------------------------------------------------
+# Invalid / missing gender (see https://en.wikipedia.org/wiki/ISO/IEC_5218)
+#-------------------------------------------------------------------------------
+print("### Inserting candidate(s) with invalid/missing gender...")
+invalid_gender = copy.deepcopy(template)
+
+# a) Invalid number
+invalid_gender['gender'] = 3
+postInvalidCandidate(invalid_gender)
+
+# b) Strings are not accepted
+invalid_gender['gender'] = 'Male'
+postInvalidCandidate(invalid_gender)
+
+# c) Missing gender
+invalid_gender.pop('gender', None)
+postInvalidCandidate(invalid_gender)
+
+
+#-------------------------------------------------------------------------------
+# Invalid / missing phone (format: 11912345678)
+#-------------------------------------------------------------------------------
+print("### Inserting candidate(s) with invalid/missing phone...")
+invalid_phone = copy.deepcopy(template)
+
+# a) Too small
+invalid_phone['phone'] = '912345678'
+postInvalidCandidate(invalid_phone)
+
+# b) Too big
+invalid_phone['phone'] = '5511912345678'
+postInvalidCandidate(invalid_phone)
+
+# c) Strings are not accepted
+invalid_phone['phone'] = 'nove sete cinco um meia quatro meia dois'
+postInvalidCandidate(invalid_phone)
+
+# d) Missing phone
+invalid_phone.pop('phone', None)
+postInvalidCandidate(invalid_phone)
+
+
+#-------------------------------------------------------------------------------
+# Invalid / missing address (at least 5 characters)
+#-------------------------------------------------------------------------------
+print("### Inserting candidate(s) with invalid/missing address...")
+invalid_address = copy.deepcopy(template)
+
+# a) Too small
+invalid_address['address'] = 'Rua'
+postInvalidCandidate(invalid_address)
+
+# b) Too big
+invalid_address['address'] = 'Endereço muito muito muito muito muito muito muito muito muito muito muito muito muito muito muito muito muito muito grande'
+postInvalidCandidate(invalid_address)
+
+# c) Missing address
+invalid_address.pop('address', None)
+postInvalidCandidate(invalid_address)
+
+#-------------------------------------------------------------------------------
+# Invalid latitude (optional, but if present should be valid )
+# (see https://en.wikipedia.org/wiki/Decimal_degrees)
+#-------------------------------------------------------------------------------
+print("### Inserting candidate(s) with invalid latitude...")
+invalid_latitude = copy.deepcopy(template)
+
+# a) Too small
+invalid_latitude['latitude'] = -91.2
+postInvalidCandidate(invalid_latitude)
+
+# b) Too big
+invalid_latitude['latitude'] = 93.2
+postInvalidCandidate(invalid_latitude)
+
+# c) Strings are not accepted
+invalid_latitude['latitude'] = '45 degrees'
+postInvalidCandidate(invalid_latitude)
+
+#-------------------------------------------------------------------------------
+# Invalid longitude (optional, but if present should be valid )
+# (see https://en.wikipedia.org/wiki/Decimal_degrees)
+#-------------------------------------------------------------------------------
+print("### Inserting candidate(s) with invalid longitude...")
+invalid_longitude = copy.deepcopy(template)
+
+# a) Too small
+invalid_longitude['longitude'] = -181.22
+postInvalidCandidate(invalid_longitude)
+
+# b) Too big
+invalid_longitude['longitude'] = 193.21
+postInvalidCandidate(invalid_longitude)
+
+# c) Strings are not accepted
+invalid_longitude['longitude'] = '45 degrees'
+postInvalidCandidate(invalid_longitude)
+
+#-------------------------------------------------------------------------------
+# Invalid birthdate (optional, but if present should be valid )
+# format is DD/MM/YYYY
+#-------------------------------------------------------------------------------
+print("### Inserting candidate(s) with invalid birthdate...")
+invalid_birthdate = copy.deepcopy(template)
+
+# a) Invalid day
+invalid_birthdate['birthdate'] = "00/02/1988"
+postInvalidCandidate(invalid_birthdate)
+
+# b) Invalid month
+invalid_birthdate['birthdate'] = "01/13/1988"
+postInvalidCandidate(invalid_birthdate)
+
+# c) Invalid year
+invalid_birthdate['birthdate'] = "03/02/2048"
+postInvalidCandidate(invalid_birthdate)
+
+# d) Invalid day of month
+invalid_birthdate['birthdate'] = "30/02/1988"
+postInvalidCandidate(invalid_birthdate)
+
