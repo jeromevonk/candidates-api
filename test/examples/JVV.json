@@ -1,10 +1,9 @@
 {
 	"name" : "Jerome Vergueiro Vonk",
-	"picture" : "TODO",
 	"birthdate" : "18/02/1988",
-	"gender" : "Male",
+	"gender" : 1,
 	"email" : "vonk@gmail.com",
-	"phone" : "+5511912345678",
+	"phone" : "11912345678",
 	"address" : "Avenida Paulista, 1",
 	"longitude": 9.96233,
     "latitude": 49.80404,

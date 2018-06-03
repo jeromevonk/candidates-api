@@ -1,10 +1,9 @@
 {
 	"name" : "Hard Coded",
-	"picture" : "TODO",
 	"birthdate" : "01/01/1980",
-	"gender" : "Mamale",
+	"gender" : 9,
 	"email" : "hard@coded.com",
-	"phone" : "+5511999999999",
+	"phone" : "11999999999",
 	"address" : "Avenida Paulista, 3",
 	"longitude": 9.91547,
     "latitude": 49.4168,

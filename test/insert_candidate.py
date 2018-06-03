@@ -41,7 +41,7 @@ if len(sys.argv) > 1:
 url = URL_BASE + 'candidates'
 candidate = { "name" : "Jerome Vonk", "picture" : "", "birthdate" : "18/02/1988", "gender" : "1",
 	          "email" : "vonk@gmail.com", "phone" : "11912345678", "address" : "Avenida Paulista, 1",
-              "longitude": 0, "latitude": 0, "tags" : [], "experience" : [], "education" : []}
+              "longitude": 0, "latitude": 0, "tags" : [], "experience" : ['Diebold', 'EA'], "education" : ['USP', 'Udacity']}
               
 print("### Inserting candidates...")     
 '''

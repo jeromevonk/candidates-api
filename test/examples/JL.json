@@ -1,10 +1,10 @@
 {
 	"name" : "John Lennon",
-	"picture" : "TODO",
+	"picture" : "",
 	"birthdate" : "",
-	"gender" : "Male",
+	"gender" : 1,
 	"email" : "john@beatles.com",
-	"phone" : "",
+	"phone" : "1112345678",
 	"address" : "Abbey Road, London",
 	"longitude": 12.96233,
     "latitude": 43.80404,
