@@ -28,6 +28,10 @@ auth = HTTPBasicAuth()
 db_path   = os.path.join(os.path.dirname(__file__), 'candidates.sqlite')
 pics_path = os.path.join(os.path.dirname(__file__), 'pictures')
 
+# Ensure pictures folder exists
+if not os.path.exists(pics_path):
+    os.makedirs(pics_path)
+
 # App configuration
 app.config['UPLOAD_FOLDER'] = pics_path
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
@@ -447,7 +451,6 @@ def validateCandidate(candidate):
         if candidate['picture'] == "":
             pass
         else:
-            print("oi")
             image_data = base64.b64decode(candidate['picture'])
             if image_data[:2] != b'\xff\xd8':
                 return False, 'Picture should be base64 encoded JPEG format'
