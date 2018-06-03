@@ -289,11 +289,11 @@ def batch_insert():
         if db_candidate is None:
 
             # Create candidate
-            new_user = Candidate(candidate)
+            new_cand = Candidate(candidate)
             candidates_added   += 1
 
             # Add to database
-            db.session.add(new_user)
+            db.session.add(new_cand)
             db.session.commit()
 
         # Candidate exists in database
