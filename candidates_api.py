@@ -121,14 +121,17 @@ class Candidate(db.Model):
             self.tags  =  info['tags']
             
         if 'picture' in info:
-            # Do not save picture in database
-            # Save it in the filesystem and store path in database
-            picture_path =  os.path.join(app.config['UPLOAD_FOLDER'], "{}{}".format(self.name, '.jpg') )
-            with open(picture_path, 'wb') as fo:
-                fo.write(info['picture'])
-            
-            # Store only the path in database
-            self.picture = picture_path
+            if info['picture'] == "":
+                self.picture = info['picture']
+            else:
+                # Do not save picture in database
+                # Save it in the filesystem and store path in database
+                picture_path =  os.path.join(app.config['UPLOAD_FOLDER'], "{}{}".format(self.name, '.jpg') )
+                with open(picture_path, 'wb') as fo:
+                    fo.write(info['picture'])
+                
+                # Store only the path in database
+                self.picture = picture_path
         
 
 class CandidateSchema(ma.Schema):
@@ -154,10 +157,20 @@ def start_page():
 # ----------------------------------------------------------------------------------
 @app.route('/candidates/api/v1.0/candidates', methods = ['GET'])
 def get_candidates():
-    all_users = Candidate.query.all()
-    result = users_schema.dump(all_users)
+    
+    # Query all candidates
+    all_candidates = Candidate.query.all()
+    
+    # Base64 decode some fields
+    for candidate in all_candidates:
+        candidate = deserialize(candidate)
+    
+    # Dump all candidates
+    result = users_schema.dump(all_candidates)
+    
+    # Get the picture TODO
+    
     return jsonify(result.data)
-
 
 # ----------------------------------------------------------------------------------
 # Get a single candidate
@@ -172,11 +185,9 @@ def get_candidate(candidate_id):
         abort(404)
         
     # Base64 decode experience, education, tags
-    candidate.experience = base64.b64decode(candidate.experience).decode("utf-8")
-    candidate.education  = base64.b64decode(candidate.education).decode("utf-8")
-    candidate.tags       = base64.b64decode(candidate.tags).decode("utf-8")
+    candidate = deserialize(candidate)
     
-    # Get the picture
+    # Get the picture TODO
     
     return user_schema.jsonify(candidate)
 
@@ -353,6 +364,13 @@ def delete_candidate(candidate_id):
 # ----------------------------------------------------------------------------------
 # Auxiliar functions
 # ----------------------------------------------------------------------------------
+def deserialize(candidate):
+    candidate.experience = base64.b64decode(candidate.experience).decode("utf-8")
+    candidate.education  = base64.b64decode(candidate.education).decode("utf-8")
+    candidate.tags       = base64.b64decode(candidate.tags).decode("utf-8")
+    return candidate
+
+
 def validateCandidate(candidate):
 
     # Name is mandatory
