@@ -54,13 +54,13 @@ In order to send a batch of candidates, the following must be met:
 A sample canditate.json file should look like this:
 ```
 {
-	"name" : "Jerome Vergueiro Vonk",
-	"birthdate" : "18/02/1988",
-	"gender" : 1,
-	"email" : "vonk@gmail.com",
-	"phone" : "11912345678",
-	"address" : "Avenida Paulista, 1",
-	"longitude": 9.96233,
+    "name" : "Jerome Vergueiro Vonk",
+    "birthdate" : "18/02/1988",
+    "gender" : 1,
+    "email" : "vonk@gmail.com",
+    "phone" : "11912345678",
+    "address" : "Avenida Paulista, 1",
+    "longitude": 9.96233,
     "latitude": 49.80404,
     "tags" : ["engineer", "mecathronics"],
     "experience" : ["Electronic Arts", "Diebold Nixdorf"],
