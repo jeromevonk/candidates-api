@@ -39,7 +39,7 @@ id_to_update = 0
 
 # Find id of candidate 'Jerome Vonk'
 for item in jdata:
-    if item['name'] == 'Jerome Vergueiro Vonk':
+    if item['name'] == 'Jerome Vonk':
         id_to_update = item['id']
         print("Found Jerome Vonk with id = {}".format(id_to_update) )
         

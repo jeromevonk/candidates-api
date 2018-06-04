@@ -66,8 +66,8 @@ candidate.pop('longitude', None)
 postCandidate(candidate)
 
 # e) Insert with picture
-candidate['name']  = 'Jerome with Picture3'
-candidate['email'] = 'jerome@picture3.com'
+candidate['name']  = 'Jerome with Picture'
+candidate['email'] = 'jerome@picture.com'
 with open('jvv.jpg', 'rb') as fi:
     content = fi.read()
     candidate['picture'] = base64.b64encode(content)

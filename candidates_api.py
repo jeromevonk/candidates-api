@@ -170,16 +170,19 @@ def get_candidates():
     # Query all candidates
     all_candidates = Candidate.query.all()
     
-    # Base64 decode some fields
+    # List of dictionaries to be returned
+    to_return = []
+    
+    # Necessary step before sending to client
     for candidate in all_candidates:
-        candidate = deserialize(candidate)
+        
+        # Convert from database to a dictionary
+        candidate_dict = dictFromDB(candidate)
+        
+        # Add to list
+        to_return.append(candidate_dict)
     
-    # Dump all candidates
-    result = users_schema.dump(all_candidates)
-    
-    # Get the picture TODO
-    
-    return jsonify(result.data)
+    return jsonify(to_return)
 
 # ----------------------------------------------------------------------------------
 # Get a single candidate
@@ -191,14 +194,12 @@ def get_candidate(candidate_id):
     candidate = Candidate.query.get(candidate_id)
     if candidate is None:
         # Invalid id
-        return jsonify({'error' : 'No candidate with ID = {} in database'}.format(candidate_id) ), 400
+        return jsonify({'error' : 'No candidate with ID = {} in database'.format(candidate_id) } ), 400
         
-    # Base64 decode experience, education, tags
-    candidate = deserialize(candidate)
+    # Convert from database to a dictionary
+    candidate_dict = dictFromDB(candidate)
     
-    # Get the picture TODO
-    
-    return user_schema.jsonify(candidate)
+    return jsonify(candidate_dict), 201
 
 # ----------------------------------------------------------------------------------
 # Insert a single candidate
@@ -247,7 +248,11 @@ def insert():
         traceback.print_exception(exc_type, exc_value, exc_traceback)
         return jsonify({'error' : 'Internal error'}), 500
 
-    return user_schema.jsonify(deserialize(new_candidate))
+        
+    # Convert from database to a dictionary
+    candidate_dict = dictFromDB(new_candidate)
+    
+    return jsonify(candidate_dict), 201
 
 # ----------------------------------------------------------------------------------
 # Insert a batch of candidates
@@ -299,6 +304,7 @@ def batch_insert():
 
             except exc.IntegrityError as e:
                 # Must rollback
+                print(e)
                 db.session().rollback()
                 return jsonify({'error' : 'IntegrityError'}), 400
                 
@@ -340,7 +346,10 @@ def update_candidate(candidate_id):
     db_candidate.update(to_update)
     db.session.commit()
     
-    return user_schema.jsonify(deserialize(db_candidate))
+    # Convert from database to a dictionary
+    candidate_dict = dictFromDB(db_candidate)
+    
+    return jsonify(candidate_dict), 201
 
 # ----------------------------------------------------------------------------------
 # Delete a candidate
@@ -399,6 +408,41 @@ def deserialize(candidate):
     candidate.tags       = base64.b64decode(candidate.tags).decode("utf-8")
     return candidate
 
+def dictFromDB(db_entry):
+    dict = {}
+    
+    # Deserialize
+    dict['experience'] = base64.b64decode(db_entry.experience).decode("utf-8")
+    dict['education']  = base64.b64decode(db_entry.education).decode("utf-8")
+    dict['tags']       = base64.b64decode(db_entry.tags).decode("utf-8")
+    
+    # If there is a picture, get contents
+    print(db_entry.picture)
+    if db_entry.picture:
+        with open(db_entry.picture, 'rb') as fi:
+            data = fi.read()
+            dict['picture'] = base64.b64encode(data)
+    
+    # The non-mandatory ones
+    if db_entry.birthdate:
+        dict['birthdate'] = db_entry.birthdate
+        
+    if db_entry.latitude:
+        dict['latitude'] = db_entry.latitude
+        
+    if db_entry.longitude:
+        dict['longitude'] = db_entry.longitude
+        
+    # Finally, the mandatory ones
+    dict['name']    = db_entry.name
+    dict['email']   = db_entry.email
+    dict['gender']  = db_entry.gender
+    dict['phone']   = db_entry.phone
+    dict['address'] = db_entry.address
+    dict['id']      = db_entry.id
+    
+    return dict
+    
 def validateCandidate(candidate):
 
     # Name is mandatory
@@ -518,7 +562,7 @@ def validateCandidate(candidate):
         else:
             for item in candidate['experience']:
                 if type(item) != type(str()):
-                    return False, 'Experience must be a list os STRINGS'
+                    return False, 'Experience must be a list of STRINGS'
          
         # Serialize the list, and then encode it to prevent SQL injection
         serialized = json.dumps(candidate['experience'])
@@ -531,7 +575,7 @@ def validateCandidate(candidate):
         else:
             for item in candidate['education']:
                 if type(item) != type(str()):
-                    return False, 'Education must be a list os STRINGS'
+                    return False, 'Education must be a list of STRINGS'
          
         # Serialize the list, and then encode it to prevent SQL injection
         serialized = json.dumps(candidate['education'])
@@ -543,7 +587,7 @@ def validateCandidate(candidate):
         else:
             for item in candidate['tags']:
                 if type(item) != type(str()):
-                    return False, 'Tags must be a list os STRINGS'
+                    return False, 'Tags must be a list of STRINGS'
          
         # Serialize the list, and then encode it to prevent SQL injection
         serialized = json.dumps(candidate['tags'])

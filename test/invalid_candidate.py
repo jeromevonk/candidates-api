@@ -39,7 +39,7 @@ if len(sys.argv) > 1:
 # Insert invalid candidates
 #-------------------------------------------------------------------------------
 url = URL_BASE + 'candidates'
-template = { "name" : "Jerome Vonkkkie", "picture" : "", "birthdate" : "01/02/1988", "gender" : "1",
+template = { "name" : "Jerome Vonkkkie", "picture" : "", "birthdate" : "01/02/1988", "gender" : 1,
              "email" : "vonk@gmail.com", "phone" : "11912345678", "address" : "Avenida Paulista, 1",
              "longitude": -12.75, "latitude": 45.11122, "tags" : [], "experience" : [], "education" : []}
 

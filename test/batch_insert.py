@@ -60,8 +60,3 @@ sendBatch(filename, multipart_form_data)
 filename = 'examples/_one_bad_document.zip'
 multipart_form_data = {'zipfile': (filename, open(filename, 'rb'), "multipart/form-data")}
 sendBatch(filename, multipart_form_data)
-
-
-
- 
-

@@ -15,8 +15,6 @@ HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v1.0/'
 
 # Default to localhost
 URL_BASE = LOCAL
-
-
  
 #-------------------------------------------------------------------------------
 # Get list of candidates

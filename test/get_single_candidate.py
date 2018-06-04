@@ -16,17 +16,27 @@ HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v1.0/'
 # Default to localhost
 URL_BASE = LOCAL
 
-# Parse command line argument
+# Default to candidate ID = 1
+candidate_id = 1
+
+# Parse command line arguments
 if len(sys.argv) > 1:
-    if 'heroku' == sys.argv[1]:
-        URL_BASE = HEROKU 
+    try:
+        # Get candidate ID
+        candidate_id = int(sys.argv[1])
+    except:
+        pass
+        
+        
+if len(sys.argv) > 2:
+    if 'heroku' == sys.argv[2]:
+        URL_BASE = HEROKU         
 
  
 #-------------------------------------------------------------------------------
 # Get list of candidates
 #-------------------------------------------------------------------------------
-#[IMPROVEMENT]: first call get all candidates and then get the ID of wanted candidate
-url = URL_BASE + 'candidates/1'
+url = URL_BASE + 'candidates/{}'.format(candidate_id) 
 
 try:
     r = requests.get(url)

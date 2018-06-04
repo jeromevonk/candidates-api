@@ -26,9 +26,8 @@ if len(sys.argv) > 1:
 #-------------------------------------------------------------------------------
 # Delete one candidate a time
 #-------------------------------------------------------------------------------
-
 try:
-    for i in range(1, 4):
+    for i in range(1, 6):
         url = URL_BASE + 'candidates/{}'.format(i)
         r = requests.delete(url, auth=('user', '123'))
         print(r.status_code)
