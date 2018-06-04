@@ -39,7 +39,7 @@ if len(sys.argv) > 1:
 # Insert invalid candidates
 #-------------------------------------------------------------------------------
 url = URL_BASE + 'candidates'
-template = { "name" : "Jerome Vonk", "picture" : "TODO", "birthdate" : "00/02/1988", "gender" : "1",
+template = { "name" : "Jerome Vonkkkie", "picture" : "", "birthdate" : "01/02/1988", "gender" : "1",
              "email" : "vonk@gmail.com", "phone" : "11912345678", "address" : "Avenida Paulista, 1",
              "longitude": -12.75, "latitude": 45.11122, "tags" : [], "experience" : [], "education" : []}
 
@@ -207,4 +207,60 @@ postInvalidCandidate(invalid_birthdate)
 # d) Invalid day of month
 invalid_birthdate['birthdate'] = "30/02/1988"
 postInvalidCandidate(invalid_birthdate)
+
+#-------------------------------------------------------------------------------
+# Invalid picture (optional, but if present should be valid )
+#-------------------------------------------------------------------------------
+print("### Inserting candidate(s) with invalid picture...")
+invalid_picture = copy.deepcopy(template)
+
+# a) Invalid string
+invalid_picture['picture'] = "Empty"
+postInvalidCandidate(invalid_picture)
+
+# b) PNG image
+invalid_picture['picture'] = "ypBORw0KGg0KICAgDQpJSERSICAgByAgIAkIAiAgIHE6wrQgICABc1JHQiDPjhzpoKAgBGdBTUEgINGPC++/ve+/vSAgCXBIWXMgIA7DoCAOw4HIr8mkICAgEklEQVQYV2Pwn6+OyYbXqN26IEk3Z92oQDPMoCAgIElFTkTPgmA="
+postInvalidCandidate(invalid_picture)
+
+#-------------------------------------------------------------------------------
+# Invalid experience (optional, but if present should be valid )
+#-------------------------------------------------------------------------------
+print("### Inserting candidate(s) with invalid experience...")
+invalid_experience = copy.deepcopy(template)
+
+# a) Invalid string
+invalid_experience['experience'] = ""
+postInvalidCandidate(invalid_experience)
+
+# b) List of non-strings
+invalid_experience['experience'] = [1, 2, 3]
+postInvalidCandidate(invalid_experience)
+
+#-------------------------------------------------------------------------------
+# Invalid education (optional, but if present should be valid )
+#-------------------------------------------------------------------------------
+print("### Inserting candidate(s) with invalid education...")
+invalid_education = copy.deepcopy(template)
+
+# a) Invalid string
+invalid_education['education'] = ""
+postInvalidCandidate(invalid_education)
+
+# b) List of non-strings
+invalid_education['education'] = [1, 2, 3]
+postInvalidCandidate(invalid_education)
+
+#-------------------------------------------------------------------------------
+# Invalid tags (optional, but if present should be valid )
+#-------------------------------------------------------------------------------
+print("### Inserting candidate(s) with invalid tags...")
+invalid_tags = copy.deepcopy(template)
+
+# a) Invalid string
+invalid_tags['tags'] = ""
+postInvalidCandidate(invalid_tags)
+
+# b) List of non-strings
+invalid_tags['tags'] = [1, 2, 3]
+postInvalidCandidate(invalid_tags)
 

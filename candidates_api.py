@@ -96,6 +96,13 @@ class Candidate(db.Model):
     tags         = db.Column(db.String(200))
 
     def __init__(self,  info):
+        self.fill_parameters(info)
+        
+        
+    def update(self,  info):
+        self.fill_parameters(info)
+    
+    def fill_parameters(self, info):
         self.name       =  info['name']
         self.email      =  info['email']
         self.gender     =  info['gender']
@@ -133,7 +140,9 @@ class Candidate(db.Model):
                 # Store only the path in database
                 self.picture = picture_path
         
-
+    
+    
+    
 class CandidateSchema(ma.Schema):
     class Meta:
         # Fields to expose
@@ -182,7 +191,7 @@ def get_candidate(candidate_id):
     candidate = Candidate.query.get(candidate_id)
     if candidate is None:
         # Invalid id
-        abort(404)
+        return jsonify({'error' : 'No candidate with ID = {} in database'}.format(candidate_id) ), 400
         
     # Base64 decode experience, education, tags
     candidate = deserialize(candidate)
@@ -204,35 +213,8 @@ def insert():
             print("MISSING: ", parameter)
             return jsonify({'error' : 'Missing one or more required parameters {}'.format(REQUIRED) } ), 400
 
-    # Get parameters
-    possible_candidate = {}
-    possible_candidate['name']       = request.json['name']
-    possible_candidate['email']      = request.json['email']
-    possible_candidate['gender']     = request.json['gender']
-    possible_candidate['phone']      = request.json['phone']
-    possible_candidate['address']    = request.json['address']
-    
-    # These are not mandatory
-    if 'latitude' in request.json:
-        possible_candidate['latitude']   = request.json['latitude']
-
-    if 'longitude' in request.json:
-        possible_candidate['longitude']  = request.json['longitude']
-    
-    if 'birthdate' in request.json:
-        possible_candidate['birthdate']  = request.json['birthdate']
-    
-    if 'picture' in request.json:
-        possible_candidate['picture']  = request.json['picture']
-        
-    if 'experience' in request.json:
-        possible_candidate['experience']  = request.json['experience']
-
-    if 'education' in request.json:
-        possible_candidate['education']  =  request.json['education']
-            
-    if 'tags' in request.json:
-        possible_candidate['tags']  =  request.json['tags']
+    # Get parameters from Flask's request
+    possible_candidate = RequestParameters()
 
     # Validate candidate
     valid, msg = validateCandidate(possible_candidate)
@@ -265,9 +247,7 @@ def insert():
         traceback.print_exception(exc_type, exc_value, exc_traceback)
         return jsonify({'error' : 'Internal error'}), 500
 
-    result = user_schema.dump(new_candidate)
-
-    return jsonify(result), 201
+    return user_schema.jsonify(deserialize(new_candidate))
 
 # ----------------------------------------------------------------------------------
 # Insert a batch of candidates
@@ -282,46 +262,59 @@ def batch_insert():
         myZip = ZipFile(received_file)
     except BadZipfile:
         # Not a valid zipfile, abort
-        abort(400)
+        return jsonify({'error' : 'Not a valid .zip file'}), 400
 
     # Get a list of json objects contained in the ZipFile
-    list_candidates = [json.loads(myZip.read(name)) for name in myZip.namelist()]
+    list_candidates = [json.loads(myZip.read(name)) for name in myZip.namelist() if '.json' in name]
+    
+    if not list_candidates:
+        return jsonify({'error' : 'No valid .json files inside zip file'}), 400
 
     # Count
     candidates_added   = 0
     candidates_updated = 0
+    invalid_candidates = 0
 
     for candidate in list_candidates:
-
         # Skip invalid candidates
-        if not validateCandidate(candidate):
+        valid, msg = validateCandidate(candidate)
+        if valid == False:
+            invalid_candidates += 1
             continue
-
+        
         # Candidate already in database?
         db_candidate = Candidate.query.filter_by(name = candidate['name']).first()
 
         # Candidate does not exist in database
         if db_candidate is None:
+            try:
+                # Create candidate
+                new_cand = Candidate(candidate)
 
-            # Create candidate
-            new_cand = Candidate(candidate)
-            candidates_added   += 1
+                # Add to database
+                db.session.add(new_cand)
+                db.session.commit()
+                
+                candidates_added   += 1
 
-            # Add to database
-            db.session.add(new_cand)
-            db.session.commit()
+            except exc.IntegrityError as e:
+                # Must rollback
+                db.session().rollback()
+                return jsonify({'error' : 'IntegrityError'}), 400
+                
+            except:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                traceback.print_exception(exc_type, exc_value, exc_traceback)
+                return jsonify({'error' : 'Internal error'}), 500
 
         # Candidate exists in database
         else:
-
             # Update
-            db_candidate.name  = candidate['name']
-            db_candidate.email = candidate['email']
+            db_candidate.update(candidate)
             db.session.commit()
-
             candidates_updated += 1
 
-    return jsonify({'added' : candidates_added, 'updated' : candidates_updated}), 201
+    return jsonify({'added' : candidates_added, 'updated' : candidates_updated, 'invalid': invalid_candidates}), 201
 
 # ----------------------------------------------------------------------------------
 # Update a candidate
@@ -329,21 +322,25 @@ def batch_insert():
 @app.route('/candidates/api/v1.0/candidates/<int:candidate_id>', methods = ['PUT'])
 def update_candidate(candidate_id):
 
-    candidate = Candidate.query.get(candidate_id)
-    if candidate is None:
+    # Query by ID
+    db_candidate = Candidate.query.get(candidate_id)
+    if db_candidate is None:
         # Invalid id
-        abort(404)
+        return jsonify({'error' : 'No candidate with ID = {} in database'}.format(candidate_id) ), 400
+        
+    # Get parameters from Flask's request
+    to_update = RequestParameters()
 
-
-    #TODO parameters exist?
-    name  = request.json['name']
-    email = request.json['email']
-
-    candidate.email = email
-    candidate.name  = name
-
+    # Validate candidate
+    valid, msg = validateCandidate(to_update)
+    if valid == False:
+        return jsonify({'error' : msg}), 400
+        
+    # Update
+    db_candidate.update(to_update)
     db.session.commit()
-    return user_schema.jsonify(candidate)
+    
+    return user_schema.jsonify(deserialize(db_candidate))
 
 # ----------------------------------------------------------------------------------
 # Delete a candidate
@@ -364,12 +361,43 @@ def delete_candidate(candidate_id):
 # ----------------------------------------------------------------------------------
 # Auxiliar functions
 # ----------------------------------------------------------------------------------
+def RequestParameters():
+    candidate = {}
+    candidate['name']       = request.json['name']
+    candidate['email']      = request.json['email']
+    candidate['gender']     = request.json['gender']
+    candidate['phone']      = request.json['phone']
+    candidate['address']    = request.json['address']
+    
+    # These are not mandatory
+    if 'latitude' in request.json:
+        candidate['latitude']   = request.json['latitude']
+
+    if 'longitude' in request.json:
+        candidate['longitude']  = request.json['longitude']
+    
+    if 'birthdate' in request.json:
+        candidate['birthdate']  = request.json['birthdate']
+    
+    if 'picture' in request.json:
+        candidate['picture']  = request.json['picture']
+        
+    if 'experience' in request.json:
+        candidate['experience']  = request.json['experience']
+
+    if 'education' in request.json:
+        candidate['education']  =  request.json['education']
+            
+    if 'tags' in request.json:
+        candidate['tags']  =  request.json['tags']
+        
+    return candidate
+
 def deserialize(candidate):
     candidate.experience = base64.b64decode(candidate.experience).decode("utf-8")
     candidate.education  = base64.b64decode(candidate.education).decode("utf-8")
     candidate.tags       = base64.b64decode(candidate.tags).decode("utf-8")
     return candidate
-
 
 def validateCandidate(candidate):
 
@@ -398,7 +426,7 @@ def validateCandidate(candidate):
     # 9 = not applicable
     if 'gender' not in candidate:
         return False, 'Gender is mandatory'
-    elif candidate['gender'] not in ['0', '1', '2', '9']:
+    elif candidate['gender'] not in [0, 1, 2, 9]:
         return False, 'Invalid gender. See https://en.wikipedia.org/wiki/ISO/IEC_5218'
 
     # Phone is mandatory and should be in the format 11912345678
@@ -445,35 +473,43 @@ def validateCandidate(candidate):
 
     # Birthdate is not mandatory, but if present should be in the format DD/MM/YYYY
     if 'birthdate' in candidate:
-        try:
-            print(candidate['birthdate'])
-            (day, month, year) = candidate['birthdate'].split('/');
+        if candidate['birthdate'] == "":
+            # Invalid, so pop this key out of the dictionary
+            candidate.pop('birthdate', None)
+        
+        else:
+            try:
+                (day, month, year) = candidate['birthdate'].split('/');
 
-            if int(day) < 1 or int(day)> 31:
-                return False, 'Invalid day for birthdate'
+                if int(day) < 1 or int(day)> 31:
+                    return False, 'Invalid day for birthdate'
 
-            if int(month) < 1 or int(month)> 12:
-                return False, 'Invalid month for birthdate'
+                if int(month) < 1 or int(month)> 12:
+                    return False, 'Invalid month for birthdate'
 
-            if int(year) < 1900 or int(year)> 2018:
-                return False, 'Invalid year for birthdate'
+                if int(year) < 1900 or int(year)> 2018:
+                    return False, 'Invalid year for birthdate'
 
-            # Change format to datetime.date
-            candidate['birthdate'] = datetime.date(int(year), int(month), int(day))
+                # Change format to datetime.date
+                candidate['birthdate'] = datetime.date(int(year), int(month), int(day))
 
-        except:
-            return False, 'Birthdate should be in the format DD/MM/YYYY'
+            except:
+                print('except')
+                return False, 'Birthdate should be in the format DD/MM/YYYY'
 
     # Picture: must be either empty or base64 encoded JPEG format
     if 'picture' in candidate:
         if candidate['picture'] == "":
             pass
         else:
-            image_data = base64.b64decode(candidate['picture'])
-            if image_data[:2] != b'\xff\xd8':
-                return False, 'Picture should be base64 encoded JPEG format'
-            else:
-                candidate['picture'] = image_data
+            try:
+                image_data = base64.b64decode(candidate['picture'])
+                if image_data[:2] != b'\xff\xd8':
+                    return False, 'Picture should be base64 encoded JPEG format'
+                else:
+                    candidate['picture'] = image_data
+            except:
+                return False, 'Picture should be base64 encoded'
         
     # Experience: should be a list of strings
     if 'experience' in candidate:

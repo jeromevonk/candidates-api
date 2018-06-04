@@ -44,4 +44,27 @@ The API expects documents in JSON format.
 | Education  |     No     | List of Strings                                              |
 | Picture    |     No     | Base64 encoded JPEG format                                   |
 
+#### Instructions
 
+In order to send a batch of candidates, the following must be met:
+
+- Create a .zip file with .json files inside;
+- Make a post request to /candidates/api/v1.0/candidates/batch with `enctype="multipart/form-data"` and `name="zipfile"`
+
+A sample canditate.json file should look like this:
+```
+{
+	"name" : "Jerome Vergueiro Vonk",
+	"birthdate" : "18/02/1988",
+	"gender" : 1,
+	"email" : "vonk@gmail.com",
+	"phone" : "11912345678",
+	"address" : "Avenida Paulista, 1",
+	"longitude": 9.96233,
+    "latitude": 49.80404,
+    "tags" : ["engineer", "mecathronics"],
+    "experience" : ["Electronic Arts", "Diebold Nixdorf"],
+    "education" : ["USP", "Udacity"]
+}
+```
+Kindly have a look a the [test folder](https://github.com/jeromevonk/candidates-api/tree/master/test) for more test examples.
