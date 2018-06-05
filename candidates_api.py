@@ -17,6 +17,7 @@ import datetime
 import sys
 import traceback
 import base64
+import re
 
 # ----------------------------------------------------------------------------------
 # Initialization
@@ -48,7 +49,6 @@ login = {'user': ("7655812bca678302fa70d06d913e52b23f638d66a27751f459af0b44cd6ac
 # ----------------------------------------------------------------------------------
 # Password callbacks
 # ----------------------------------------------------------------------------------
-
 @auth.verify_password
 def verify_password(user, password):
     try:
@@ -60,6 +60,7 @@ def verify_password(user, password):
     # Verify password
     if hashlib.sha256( password.encode('utf-8') + salt ).hexdigest() == hashed_passwd:
         return True
+
     return False
 
 # ----------------------------------------------------------------------------------
@@ -97,36 +98,36 @@ class Candidate(db.Model):
 
     def __init__(self,  info):
         self.fill_parameters(info)
-        
-        
+
+
     def update(self,  info):
         self.fill_parameters(info)
-    
+
     def fill_parameters(self, info):
         self.name       =  info['name']
         self.email      =  info['email']
         self.gender     =  info['gender']
         self.phone      =  info['phone']
         self.address    =  info['address']
-        
+
         if 'latitude' in info:
             self.latitude   =  info['latitude']
-            
+
         if 'longitude' in info:
             self.longitude  =  info['longitude']
-            
+
         if 'birthdate' in info:
             self.birthdate  =  info['birthdate']
-            
+
         if 'experience' in info:
             self.experience  =  info['experience']
-            
+
         if 'education' in info:
             self.education  =  info['education']
-            
+
         if 'tags' in info:
             self.tags  =  info['tags']
-            
+
         if 'picture' in info:
             if info['picture'] == "":
                 self.picture = info['picture']
@@ -136,18 +137,14 @@ class Candidate(db.Model):
                 picture_path =  os.path.join(app.config['UPLOAD_FOLDER'], "{}{}".format(self.name, '.jpg') )
                 with open(picture_path, 'wb') as fo:
                     fo.write(info['picture'])
-                
+
                 # Store only the path in database
                 self.picture = picture_path
-        
-    
-    
-    
+
 class CandidateSchema(ma.Schema):
     class Meta:
         # Fields to expose
         fields = ('id', 'name', 'email', 'gender', 'phone', 'address', 'latitude', 'longitude', 'birthdate', 'picture', 'experience', 'education', 'tags')
-
 
 user_schema  = CandidateSchema()
 users_schema = CandidateSchema(many=True)
@@ -159,6 +156,7 @@ REQUIRED = ['name', 'email', 'gender', 'phone', 'address']
 # ----------------------------------------------------------------------------------
 @app.route("/")
 def start_page():
+    ''' Shows the index page '''
     return render_template('index.html')
 
 # ----------------------------------------------------------------------------------
@@ -166,22 +164,23 @@ def start_page():
 # ----------------------------------------------------------------------------------
 @app.route('/candidates/api/v1.0/candidates', methods = ['GET'])
 def get_candidates():
-    
+    ''' Get all candidates information from database '''
+
     # Query all candidates
     all_candidates = Candidate.query.all()
-    
+
     # List of dictionaries to be returned
     to_return = []
-    
+
     # Necessary step before sending to client
     for candidate in all_candidates:
-        
+
         # Convert from database to a dictionary
         candidate_dict = dictFromDB(candidate)
-        
+
         # Add to list
         to_return.append(candidate_dict)
-    
+
     return jsonify(to_return)
 
 # ----------------------------------------------------------------------------------
@@ -189,16 +188,17 @@ def get_candidates():
 # ----------------------------------------------------------------------------------
 @app.route('/candidates/api/v1.0/candidates/<int:candidate_id>', methods = ['GET'])
 def get_candidate(candidate_id):
-    
+    ''' Get a candidate information from database '''
+
     # Make a query
     candidate = Candidate.query.get(candidate_id)
     if candidate is None:
         # Invalid id
         return jsonify({'error' : 'No candidate with ID = {} in database'.format(candidate_id) } ), 400
-        
+
     # Convert from database to a dictionary
     candidate_dict = dictFromDB(candidate)
-    
+
     return jsonify(candidate_dict), 201
 
 # ----------------------------------------------------------------------------------
@@ -206,6 +206,7 @@ def get_candidate(candidate_id):
 # ----------------------------------------------------------------------------------
 @app.route('/candidates/api/v1.0/candidates', methods = ['POST'])
 def insert():
+    ''' Insert a candidate on the database  '''
     if not request.json:
         abort(400)
 
@@ -215,7 +216,7 @@ def insert():
             return jsonify({'error' : 'Missing one or more required parameters {}'.format(REQUIRED) } ), 400
 
     # Get parameters from Flask's request
-    possible_candidate = RequestParameters()
+    possible_candidate = request_all()
 
     # Validate candidate
     valid, msg = validateCandidate(possible_candidate)
@@ -242,16 +243,16 @@ def insert():
         # Must rollback
         db.session().rollback()
         return jsonify({'error' : 'IntegrityError'}), 400
-        
+
     except:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback)
         return jsonify({'error' : 'Internal error'}), 500
 
-        
+
     # Convert from database to a dictionary
     candidate_dict = dictFromDB(new_candidate)
-    
+
     return jsonify(candidate_dict), 201
 
 # ----------------------------------------------------------------------------------
@@ -259,6 +260,7 @@ def insert():
 # ----------------------------------------------------------------------------------
 @app.route('/candidates/api/v1.0/candidates/batch', methods = ['POST'])
 def batch_insert():
+    ''' Insert or updated candidates from a batch of json files '''
     # Retrieve the zip file
     received_file = request.files['zipfile']
 
@@ -271,7 +273,7 @@ def batch_insert():
 
     # Get a list of json objects contained in the ZipFile
     list_candidates = [json.loads(myZip.read(name)) for name in myZip.namelist() if '.json' in name]
-    
+
     if not list_candidates:
         return jsonify({'error' : 'No valid .json files inside zip file'}), 400
 
@@ -286,7 +288,7 @@ def batch_insert():
         if valid == False:
             invalid_candidates += 1
             continue
-        
+
         # Candidate already in database?
         db_candidate = Candidate.query.filter_by(name = candidate['name']).first()
 
@@ -299,7 +301,7 @@ def batch_insert():
                 # Add to database
                 db.session.add(new_cand)
                 db.session.commit()
-                
+
                 candidates_added   += 1
 
             except exc.IntegrityError as e:
@@ -307,7 +309,7 @@ def batch_insert():
                 print(e)
                 db.session().rollback()
                 return jsonify({'error' : 'IntegrityError'}), 400
-                
+
             except:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 traceback.print_exception(exc_type, exc_value, exc_traceback)
@@ -327,28 +329,29 @@ def batch_insert():
 # ----------------------------------------------------------------------------------
 @app.route('/candidates/api/v1.0/candidates/<int:candidate_id>', methods = ['PUT'])
 def update_candidate(candidate_id):
+    ''' Update a candidate information in database '''
 
     # Query by ID
     db_candidate = Candidate.query.get(candidate_id)
     if db_candidate is None:
         # Invalid id
         return jsonify({'error' : 'No candidate with ID = {} in database'}.format(candidate_id) ), 400
-        
+
     # Get parameters from Flask's request
-    to_update = RequestParameters()
+    to_update = request_all()
 
     # Validate candidate
     valid, msg = validateCandidate(to_update)
     if valid == False:
         return jsonify({'error' : msg}), 400
-        
+
     # Update
     db_candidate.update(to_update)
     db.session.commit()
-    
+
     # Convert from database to a dictionary
     candidate_dict = dictFromDB(db_candidate)
-    
+
     return jsonify(candidate_dict), 201
 
 # ----------------------------------------------------------------------------------
@@ -357,6 +360,7 @@ def update_candidate(candidate_id):
 @app.route('/candidates/api/v1.0/candidates/<int:candidate_id>', methods = ['DELETE'])
 @auth.login_required
 def delete_candidate(candidate_id):
+    ''' Delete one candidate from database '''
     candidate = Candidate.query.get(candidate_id)
     if candidate is None:
         # Invalid id
@@ -367,72 +371,93 @@ def delete_candidate(candidate_id):
 
     return jsonify( { 'result': True } )
 
+
+# ----------------------------------------------------------------------------------
+# Delete all candidate
+# ----------------------------------------------------------------------------------
+@app.route('/candidates/api/v1.0/candidates', methods = ['DELETE'])
+@auth.login_required
+def delete_all():
+    ''' Delete all candidates from database '''
+    db.session.query(Candidate).delete()
+    db.session.commit()
+
+    return jsonify( { 'result': True } )
+
 # ----------------------------------------------------------------------------------
 # Auxiliar functions
 # ----------------------------------------------------------------------------------
-def RequestParameters():
+def request_all():
+    ''' Retrieve all parameters from a specific request'''
     candidate = {}
     candidate['name']       = request.json['name']
     candidate['email']      = request.json['email']
     candidate['gender']     = request.json['gender']
     candidate['phone']      = request.json['phone']
     candidate['address']    = request.json['address']
-    
+
     # These are not mandatory
     if 'latitude' in request.json:
         candidate['latitude']   = request.json['latitude']
 
     if 'longitude' in request.json:
         candidate['longitude']  = request.json['longitude']
-    
+
     if 'birthdate' in request.json:
         candidate['birthdate']  = request.json['birthdate']
-    
+
     if 'picture' in request.json:
         candidate['picture']  = request.json['picture']
-        
+
     if 'experience' in request.json:
         candidate['experience']  = request.json['experience']
 
     if 'education' in request.json:
         candidate['education']  =  request.json['education']
-            
+
     if 'tags' in request.json:
         candidate['tags']  =  request.json['tags']
-        
+
     return candidate
 
-def deserialize(candidate):
-    candidate.experience = base64.b64decode(candidate.experience).decode("utf-8")
-    candidate.education  = base64.b64decode(candidate.education).decode("utf-8")
-    candidate.tags       = base64.b64decode(candidate.tags).decode("utf-8")
-    return candidate
+def convertToList(info):
+    ''' Create a list from base64 encoded string'''
+    # Deserialize
+    info = base64.b64decode(info).decode("utf-8")
+
+    # Remove some characters
+    info = re.sub('\]|"', '', info)
+    info = re.sub('\[', '', info)
+
+    # Conver it to a list
+    list = info.split(',')
+
+    return list
 
 def dictFromDB(db_entry):
+    ''' Create a dictionary containing all info drom a database entry'''
     dict = {}
-    
-    # Deserialize
-    dict['experience'] = base64.b64decode(db_entry.experience).decode("utf-8")
-    dict['education']  = base64.b64decode(db_entry.education).decode("utf-8")
-    dict['tags']       = base64.b64decode(db_entry.tags).decode("utf-8")
-    
+
+    dict['experience'] = convertToList(db_entry.experience)
+    dict['education']  = convertToList(db_entry.education)
+    dict['tags']       = convertToList(db_entry.tags)
+
     # If there is a picture, get contents
-    print(db_entry.picture)
     if db_entry.picture:
         with open(db_entry.picture, 'rb') as fi:
             data = fi.read()
             dict['picture'] = base64.b64encode(data)
-    
+
     # The non-mandatory ones
     if db_entry.birthdate:
         dict['birthdate'] = db_entry.birthdate
-        
+
     if db_entry.latitude:
         dict['latitude'] = db_entry.latitude
-        
+
     if db_entry.longitude:
         dict['longitude'] = db_entry.longitude
-        
+
     # Finally, the mandatory ones
     dict['name']    = db_entry.name
     dict['email']   = db_entry.email
@@ -440,10 +465,11 @@ def dictFromDB(db_entry):
     dict['phone']   = db_entry.phone
     dict['address'] = db_entry.address
     dict['id']      = db_entry.id
-    
+
     return dict
-    
+
 def validateCandidate(candidate):
+    ''' Validate all parameters for a candidate'''
 
     # Name is mandatory
     if 'name' not in candidate:
@@ -520,7 +546,7 @@ def validateCandidate(candidate):
         if candidate['birthdate'] == "":
             # Invalid, so pop this key out of the dictionary
             candidate.pop('birthdate', None)
-        
+
         else:
             try:
                 (day, month, year) = candidate['birthdate'].split('/');
@@ -554,7 +580,7 @@ def validateCandidate(candidate):
                     candidate['picture'] = image_data
             except:
                 return False, 'Picture should be base64 encoded'
-        
+
     # Experience: should be a list of strings
     if 'experience' in candidate:
         if type(candidate['experience']) != type(list()):
@@ -563,11 +589,11 @@ def validateCandidate(candidate):
             for item in candidate['experience']:
                 if type(item) != type(str()):
                     return False, 'Experience must be a list of STRINGS'
-         
+
         # Serialize the list, and then encode it to prevent SQL injection
         serialized = json.dumps(candidate['experience'])
         candidate['experience'] = base64.b64encode(serialized.encode())
-    
+
     # Education: should be a list of strings
     if 'education' in candidate:
         if type(candidate['education']) != type(list()):
@@ -576,11 +602,11 @@ def validateCandidate(candidate):
             for item in candidate['education']:
                 if type(item) != type(str()):
                     return False, 'Education must be a list of STRINGS'
-         
+
         # Serialize the list, and then encode it to prevent SQL injection
         serialized = json.dumps(candidate['education'])
         candidate['education'] = base64.b64encode(serialized.encode())
-    
+
     # Tags: should be a list of strings
         if type(candidate['tags']) != type(list()):
             return False, 'Tags must be a list'
@@ -588,11 +614,11 @@ def validateCandidate(candidate):
             for item in candidate['tags']:
                 if type(item) != type(str()):
                     return False, 'Tags must be a list of STRINGS'
-         
+
         # Serialize the list, and then encode it to prevent SQL injection
         serialized = json.dumps(candidate['tags'])
         candidate['tags'] = base64.b64encode(serialized.encode())
-    
+
     return True, ""
 
 

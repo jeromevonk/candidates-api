@@ -23,16 +23,15 @@ if len(sys.argv) > 1:
     if 'heroku' == sys.argv[1]:
         URL_BASE = HEROKU 
 
-_pswd  = getpass.getpass('Password: ')  
+_pswd  = getpass.getpass('Password: ') 
 #-------------------------------------------------------------------------------
-# Delete one candidate a time
+# Delete all candidates
 #-------------------------------------------------------------------------------
 try:
-    for i in range(1, 3):
-        url = URL_BASE + 'candidates/{}'.format(i)
-        r = requests.delete(url, auth=('user', _pswd))
-        print(r.status_code)
-        print(r.text)
+    url = URL_BASE + 'candidates'
+    r = requests.delete(url, auth=('user', _pswd))
+    print(r.status_code)
+    print(r.text)
     
 except requests.exceptions.RequestException as e:
     print(e)
