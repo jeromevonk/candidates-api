@@ -157,7 +157,7 @@ REQUIRED = ['name', 'email', 'gender', 'phone', 'address']
 @app.route("/")
 def start_page():
     ''' Shows the index page '''
-    return render_template('index.html')
+    return render_template('batch_insert.html')
 
 # ----------------------------------------------------------------------------------
 # Get list of candidates
