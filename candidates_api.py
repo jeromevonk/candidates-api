@@ -453,7 +453,7 @@ def dictFromDB(db_entry):
     if db_entry.picture:
         with open(db_entry.picture, 'rb') as fi:
             data = fi.read()
-            dict['picture'] = base64.b64encode(data)
+            dict['picture'] = base64.b64encode(data).decode("utf-8")         
     else:
         dict['picture'] = ""
 
