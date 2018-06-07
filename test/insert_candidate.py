@@ -39,7 +39,7 @@ if len(sys.argv) > 1:
 # Insert one candidate with missing information
 #-------------------------------------------------------------------------------
 url = URL_BASE + 'candidates'
-candidate = { "name" : "Jerome Vonk", "picture" : "", "birthdate" : "18/02/1988", "gender" : 1,
+candidate = { "name" : "Jerome", "picture" : "", "birthdate" : "18/02/1988", "gender" : 1,
 	          "email" : "vonk@gmail.com", "phone" : "11912345678", "address" : "Avenida Paulista, 1",
               "longitude": 0, "latitude": 0, "tags" : [], "experience" : ['Diebold', 'EA'], "education" : ['USP', 'Udacity']}
               
@@ -66,7 +66,7 @@ candidate.pop('longitude', None)
 postCandidate(candidate)
 
 # e) Insert with picture
-candidate['name']  = 'Jerome with Picture'
+candidate['name']  = 'Jerome Vonk'
 candidate['email'] = 'jerome@picture.com'
 with open('jvv.jpg', 'rb') as fi:
     content = fi.read()
