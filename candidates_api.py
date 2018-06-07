@@ -181,7 +181,8 @@ def get_candidates():
         # Add to list
         to_return.append(candidate_dict)
 
-    return jsonify(to_return)
+    #return jsonify(to_return)
+    return jsonify( { 'candidates': to_return } )
 
 # ----------------------------------------------------------------------------------
 # Get a single candidate
@@ -271,8 +272,13 @@ def batch_insert():
         # Not a valid zipfile, abort
         return jsonify({'error' : 'Not a valid .zip file'}), 400
 
-    # Get a list of json objects contained in the ZipFile
-    list_candidates = [json.loads(myZip.read(name)) for name in myZip.namelist() if '.json' in name]
+    # Get a list of json objects contained in the ZipFile 
+    try:
+        list_candidates = [json.loads(myZip.read(name)) for name in myZip.namelist() if '.json' in name]
+    except:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback)
+        return jsonify({'error' : 'Invalid json files inside zip file'}), 400
 
     if not list_candidates:
         return jsonify({'error' : 'No valid .json files inside zip file'}), 400
@@ -287,6 +293,7 @@ def batch_insert():
         valid, msg = validateCandidate(candidate)
         if valid == False:
             invalid_candidates += 1
+            print("Error validating candidate {}: {}".format(candidate['name'], msg))
             continue
 
         # Candidate already in database?
@@ -447,10 +454,13 @@ def dictFromDB(db_entry):
         with open(db_entry.picture, 'rb') as fi:
             data = fi.read()
             dict['picture'] = base64.b64encode(data)
+    else:
+        dict['picture'] = ""
 
     # The non-mandatory ones
     if db_entry.birthdate:
-        dict['birthdate'] = db_entry.birthdate
+        # Change to format DD/MM/YYYY
+        dict['birthdate'] = db_entry.birthdate.strftime("%d/%m/%Y")
 
     if db_entry.latitude:
         dict['latitude'] = db_entry.latitude
@@ -564,7 +574,6 @@ def validateCandidate(candidate):
                 candidate['birthdate'] = datetime.date(int(year), int(month), int(day))
 
             except:
-                print('except')
                 return False, 'Birthdate should be in the format DD/MM/YYYY'
 
     # Picture: must be either empty or base64 encoded JPEG format
@@ -608,6 +617,7 @@ def validateCandidate(candidate):
         candidate['education'] = base64.b64encode(serialized.encode())
 
     # Tags: should be a list of strings
+    if 'tags' in candidate:
         if type(candidate['tags']) != type(list()):
             return False, 'Tags must be a list'
         else:

@@ -1,0 +1,13 @@
+{
+	"name" : "Antonio Carlos Jobim",
+	"birthdate" : "25/01/1927",
+	"gender" : 1,
+	"email" : "tomjobim@bossanova.com.br",
+	"phone" : "11999999999",
+	"address" : "Rua Nascimento e Silva, 107",
+	"longitude": 43.1729,
+    "latitude": 22.9068,
+    "tags" : ["Musician"],
+    "experience" : [],
+    "education" : []
+}

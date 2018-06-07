@@ -1,0 +1,11 @@
+{
+	"name" : "Sócrates Brasileiro de Oliveira",
+	"birthdate" : "19/02/1954",
+	"gender" : 1,
+	"email" : "socrates@democracia.com.br",
+	"phone" : "11916645633",
+	"address" : "Belém - Pará",
+    "tags" : ["engineer", "mecathronics"],
+    "experience" : ["FMRP"],
+    "education" : ["USP - Medicina Ribeirão"]
+}

@@ -1,60 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Candidates API</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<title>Candidates Client</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+<script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.js"></script>
+<script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
 </head>
-
 <body>
-
-<div class = "container">
-    <div class = "starter-template">
-        <h1>Candidates API</h1>
-        <p> By Jerome Vonk - May, 2018 </p>
-        <p> Please note that this page is still under construction </p>
-        <p> More information <a href="https://github.com/jeromevonk/candidates-api/blob/master/README.md" target="blank">here </a></p>
+    <div class="navbar">
+        <div class="navbar-inner">
+            <a class="brand" href="#">Candidates Client</a>
+        </div>
     </div>
-</div>
+    
+    <div class = "container">
+        <div class = "starter-template">
+            <p> By <b>Jerome Vonk</b> - June, 2018 </p>
+            <p> Please note that this page is still under construction </p>
+            <p> More information <a href="https://github.com/jeromevonk/candidates-api/blob/master/README.md" target="blank">here </a> 
+            |  Try uploading a batch <a href="/batch_insert.html" target="blank">here </a> </p>
+        </div>
+    </div>
 
-<div class="panel panel-info">
-  <div class="panel-heading">Insert a batch of candidates</div>
-  <div class="panel-body">
-    <div align="center">
-        <p>Upload a zip file containing json files to insert in database</p>
+    <div id="main" class="container">
+        <table class="table table-striped">
+            <tr>
+                <td><b>Candidate</b></td>
+                <td></td>
+                <td></td>
+                <td><b>Options</b></td></tr>
+            <!-- ko foreach: candidates -->
+            <tr>
+                <td>
+                    <p>Name: <b data-bind="text: name"></b></p>
+                    <p>ID: <b data-bind="text: id"></b></p>
+                    <p>Gender: <b data-bind="text: gender"></b></p>
+                    <p>Email: <b data-bind="text: email"></b></p>
+                    <p>Phone: <b data-bind="text: phone"></b></p>
+                    <p>Address: <b data-bind="text: address"></b></p>
+                </td>
+                </td>
+                <td>
+                    <p>Birthdate: <b data-bind="text: birthdate"></b></p>
+                    <p>Latitude: <b data-bind="text: latitude"></b></p>
+                    <p>Longitude: <b data-bind="text: longitude"></b></p>
+                    <p>Education: <b data-bind="text: education"></b></p>
+                    <p>Experience: <b data-bind="text: experience"></b></p>
+                    <p>Tags: <b data-bind="text: tags"></b></p>
+                <td>
+                    <div data-bind="style: { background: 'url(data:image/png;base64,' + picture() + ')'}"></div>
+                    <img alt="" data-bind="attr: { src: 'data:image/png;base64,' + picture() }" /> 
+                </td>
+                <td>
+
+                    <p></p>
+                    <button data-bind="click: $parent.beginEdit" class="btn">Edit</button>
+                    <button data-bind="click: $parent.remove" class="btn">Delete</button>
+                    <p></p>
+                </td>
+            </tr>
+            <!-- /ko -->
+        </table>
+        <button data-bind="click: beginAdd" class="btn">Add Candidate</button>
+    </div>
+    <script type="text/javascript">
+        function CandidatesViewModel() {
+            var self = this;
+            self.candidatesURI = 'http://localhost:5000/candidates/api/v1.0/candidates';
+            self.username = "user";
+            self.password = "123";
+            self.candidates = ko.observableArray();
+
+            self.ajax = function(uri, method, data) {
+                var request = {
+                    url: uri,
+                    type: method,
+                    contentType: "application/json",
+                    accepts: "application/json",
+                    cache: false,
+                    dataType: 'json',
+                    data: JSON.stringify(data),
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader("Authorization", 
+                            "Basic " + btoa(self.username + ":" + self.password));
+                    },
+                    error: function(jqXHR) {
+                        console.log("ajax error " + jqXHR.status);
+                    }
+                };
+                return $.ajax(request);
+            }
+
+            self.beginAdd = function() {
+                alert("Add");
+            }
+            self.beginEdit = function(candidate) {
+                alert("Edit: " + candidate.name());
+            }
+            self.remove = function(candidate) {
+                alert("Remove: " + candidate.name());
+            }
+            
+            self.ajax(self.candidatesURI, 'GET').done(function(data) {
+                for (var i = 0; i < data.candidates.length; i++) {
+                    self.candidates.push({
+                        id: ko.observable(data.candidates[i].id),
+                        name: ko.observable(data.candidates[i].name),
+                        gender: ko.observable(data.candidates[i].gender),
+                        email: ko.observable(data.candidates[i].email),
+                        phone: ko.observable(data.candidates[i].phone),
+                        address: ko.observable(data.candidates[i].address),
+                        birthdate: ko.observable(data.candidates[i].birthdate),
+                        latitude: ko.observable(data.candidates[i].latitude),
+                        longitude: ko.observable(data.candidates[i].longitude),
+                        education: ko.observable(data.candidates[i].education),
+                        experience: ko.observable(data.candidates[i].experience),
+                        tags: ko.observable(data.candidates[i].tags),
+                        picture: ko.observable(data.candidates[i].picture),
+                    });
+                }
+            });
+        }
         
-        <form action="/candidates/api/v1.0/candidates/batch" method="post" enctype="multipart/form-data" >
-            <label class="btn btn-default btn-file">
-                Browse <input type="file" name="zipfile" style="display: none;">
-            </label>
-            <input type="submit" value="Upload" class="btn btn-primary">
-        
-        </form>
-    </div>
-  </div>
-</div>
-
-<div class="panel panel-warning">
-  <div class="panel-heading">Get a list of all candidates</div>
-     <div align="center">
-        <p>
-            <form action="/candidates/api/v1.0/candidates" method="get" >
-                <input type="submit" value="Get candidates" class="btn btn-primary">
-            </form>
-        </p>
-    </div>
-</div>
-
-<!-- <div class="panel panel-default">
-  <div class="panel-heading">Insert a single candidate</div>
-  <div class="panel-body">Name:</div>
-</div>
-
-<div class="panel panel-success">
-  <div class="panel-heading">Insert a single candidate</div>
-  <div class="panel-body">Name:</div>
-</div> -->
-
-
+        //$().ready(function() {
+            ko.applyBindings(new CandidatesViewModel(), $('#main')[0]);
+        //});
+    </script>
 </body>
 </html>

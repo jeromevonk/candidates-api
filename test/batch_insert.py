@@ -42,21 +42,31 @@ print("Sending batch of candidates...")
 url = URL_BASE + 'candidates/batch'
 
 # Valid batch
-filename = 'examples/_batch_candidates.zip'
+filename = 'examples/zips/_batch_candidates.zip'
 multipart_form_data = {'zipfile': (filename, open(filename, 'rb'), "multipart/form-data")}
 sendBatch(filename, multipart_form_data)
 
 # Valid zipfile with invalid document inside
-filename = 'examples/_wrong_format.zip'
+filename = 'examples/zips/_wrong_format.zip'
 multipart_form_data = {'zipfile': (filename, open(filename, 'rb'), "multipart/form-data")}
 sendBatch(filename, multipart_form_data)
 
 # Invalid zipfile (different algorithm, 7zip)
-filename = 'examples/_not_zip.7z'
+filename = 'examples/zips/_not_zip.7z'
 multipart_form_data = {'zipfile': (filename, open(filename, 'rb'), "multipart/form-data")}
 sendBatch(filename, multipart_form_data)
 
 # One bad document inside zipfile
-filename = 'examples/_one_bad_document.zip'
+filename = 'examples/zips/_one_bad_document.zip'
+multipart_form_data = {'zipfile': (filename, open(filename, 'rb'), "multipart/form-data")}
+sendBatch(filename, multipart_form_data)
+
+# Invalid json files inside
+filename = 'examples/zips/_invalid.zip'
+multipart_form_data = {'zipfile': (filename, open(filename, 'rb'), "multipart/form-data")}
+sendBatch(filename, multipart_form_data)
+
+# Missing required information
+filename = 'examples/zips/_missing_required.zip'
 multipart_form_data = {'zipfile': (filename, open(filename, 'rb'), "multipart/form-data")}
 sendBatch(filename, multipart_form_data)

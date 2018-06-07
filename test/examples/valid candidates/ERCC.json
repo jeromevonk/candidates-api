@@ -1,0 +1,13 @@
+{
+	"name" : "Elis Regina Carvalho Costa",
+	"birthdate" : "17/03/1945",
+	"gender" : 2,
+	"email" : "elis@bossanova.com.br",
+	"phone" : "11991234999",
+	"address" : "Porto Alegre, RS",
+    "latitude": 30.0346,
+	"longitude": 51.2177,
+    "tags" : ["Musician"],
+    "experience" : [],
+    "education" : []
+}

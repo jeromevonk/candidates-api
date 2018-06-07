@@ -1,0 +1,13 @@
+{
+	"name" : "Edson Arantes do Nascimento",
+	"birthdate" : "25/01/1927",
+	"gender" : 1,
+	"email" : "pele@cbf.com.br",
+	"phone" : "11999999922",
+	"address" : "Praia - Santos",
+	"longitude": 46.3635,
+    "latitude": 23.9288,
+    "tags" : ["Musician"],
+    "experience" : [],
+    "education" : []
+}
