@@ -1,5 +1,3 @@
-*.sqlite
 *.pyc
 pictures/*
 private/*
-*.sqlite

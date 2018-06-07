@@ -26,7 +26,7 @@ app = Flask(__name__, static_url_path = "")
 auth = HTTPBasicAuth()
 
 # Get path to database
-db_path   = os.path.join(os.path.dirname(__file__), 'candidates.sqlite')
+db_path   = os.path.join(os.path.dirname(__file__), 'static/candidates.sqlite')
 pics_path = os.path.join(os.path.dirname(__file__), 'pictures')
 
 # Ensure pictures folder exists
