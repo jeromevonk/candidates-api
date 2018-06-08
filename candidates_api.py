@@ -200,7 +200,8 @@ def get_candidate(candidate_id):
     # Convert from database to a dictionary
     candidate_dict = dictFromDB(candidate)
 
-    return jsonify(candidate_dict), 201
+    #return jsonify(candidate_dict), 201
+    return jsonify( { 'candidate': candidate_dict } )
 
 # ----------------------------------------------------------------------------------
 # Insert a single candidate
@@ -254,7 +255,8 @@ def insert():
     # Convert from database to a dictionary
     candidate_dict = dictFromDB(new_candidate)
 
-    return jsonify(candidate_dict), 201
+    #return jsonify(candidate_dict), 201
+    return jsonify( { 'inserted': candidate_dict } )
 
 # ----------------------------------------------------------------------------------
 # Insert a batch of candidates
@@ -429,17 +431,29 @@ def request_all():
 
 def convertToList(info):
     ''' Create a list from base64 encoded string'''
+    myList = []
+    
+    # If info is empty
+    if info is None:
+        return myList
+    
     # Deserialize
     info = base64.b64decode(info).decode("utf-8")
+    print(info)
 
     # Remove some characters
     info = re.sub('\]|"', '', info)
     info = re.sub('\[', '', info)
 
     # Conver it to a list
-    list = info.split(',')
+    myList = info.split(',')
+    
+    # If list is NoneType, create a new list
+    if list is None:
+        myList = []
 
-    return list
+    print(myList)
+    return myList
 
 def dictFromDB(db_entry):
     ''' Create a dictionary containing all info drom a database entry'''
@@ -480,6 +494,7 @@ def dictFromDB(db_entry):
 
 def validateCandidate(candidate):
     ''' Validate all parameters for a candidate'''
+    print(candidate)
 
     # Name is mandatory
     if 'name' not in candidate:
@@ -534,22 +549,34 @@ def validateCandidate(candidate):
 
     # Latitude and longitude are not mandatory, but if present should be floats
     if 'latitude' in candidate:
-        try:
-            lat = float(candidate['latitude'])
+        if candidate['latitude'] is None:
+            # Invalid, so pop this key out of the dictionary
+            candidate.pop('latitude', None)
+        else:
+            try:
+                lat = float(candidate['latitude'])
 
-            if lat > 90.0 or lat < -90.0:
-                return False, 'Latitude must between -90 and +90'
-        except ValueError:
-            return False, 'Latitude should be a float'
+                if lat > 90.0 or lat < -90.0:
+                    return False, 'Latitude must between -90 and +90'
+            except ValueError:
+                return False, 'Latitude should be a float'
+            except:
+                return False, 'Wrong type for latitude' 
 
     if 'longitude' in candidate:
-        try:
-            lon = float(candidate['longitude'])
+        if candidate['longitude'] is None:
+            # Invalid, so pop this key out of the dictionary
+            candidate.pop('longitude', None)
+        else:
+            try:
+                lon = float(candidate['longitude'])
 
-            if lon > 180.0 or lon < -180.0:
-                return False, 'Longitude must between -180 and +180'
-        except ValueError:
-            return False, 'Longitude should be a float'
+                if lon > 180.0 or lon < -180.0:
+                    return False, 'Longitude must between -180 and +180'
+            except ValueError:
+                return False, 'Longitude should be a float'
+            except:
+                return False, 'Wrong type for longitude' 
 
     # Birthdate is not mandatory, but if present should be in the format DD/MM/YYYY
     if 'birthdate' in candidate:
@@ -601,7 +628,7 @@ def validateCandidate(candidate):
 
         # Serialize the list, and then encode it to prevent SQL injection
         serialized = json.dumps(candidate['experience'])
-        candidate['experience'] = base64.b64encode(serialized.encode())
+        candidate['experience'] = base64.b64encode(serialized.encode("utf-8"))
 
     # Education: should be a list of strings
     if 'education' in candidate:
@@ -613,8 +640,10 @@ def validateCandidate(candidate):
                     return False, 'Education must be a list of STRINGS'
 
         # Serialize the list, and then encode it to prevent SQL injection
-        serialized = json.dumps(candidate['education'])
-        candidate['education'] = base64.b64encode(serialized.encode())
+        # Use ensure_ascii=False so we don't see \\u00e3o in the string
+        serialized = json.dumps(candidate['education'], ensure_ascii=False)
+        serialized = serialized.encode("utf-8")
+        candidate['education'] = base64.b64encode(serialized)
 
     # Tags: should be a list of strings
     if 'tags' in candidate:
@@ -627,7 +656,7 @@ def validateCandidate(candidate):
 
         # Serialize the list, and then encode it to prevent SQL injection
         serialized = json.dumps(candidate['tags'])
-        candidate['tags'] = base64.b64encode(serialized.encode())
+        candidate['tags'] = base64.b64encode(serialized.encode("utf-8"))
 
     return True, ""
 

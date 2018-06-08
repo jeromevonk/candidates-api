@@ -42,7 +42,7 @@ url = URL_BASE + 'candidates'
 template = { "name" : "Jerome Vonkkkie", "picture" : "", "birthdate" : "01/02/1988", "gender" : 1,
              "email" : "vonk@gmail.com", "phone" : "11912345678", "address" : "Avenida Paulista, 1",
              "longitude": -12.75, "latitude": 45.11122, "tags" : [], "experience" : [], "education" : []}
-
+'''
 #-------------------------------------------------------------------------------
 # Invalid / missing name
 #------------------------------------------------------------------------------- 
@@ -146,7 +146,7 @@ postInvalidCandidate(invalid_address)
 # c) Missing address
 invalid_address.pop('address', None)
 postInvalidCandidate(invalid_address)
-
+'''
 #-------------------------------------------------------------------------------
 # Invalid latitude (optional, but if present should be valid )
 # (see https://en.wikipedia.org/wiki/Decimal_degrees)
@@ -164,6 +164,10 @@ postInvalidCandidate(invalid_latitude)
 
 # c) Strings are not accepted
 invalid_latitude['latitude'] = '45 degrees'
+postInvalidCandidate(invalid_latitude)
+
+# d) Empty
+invalid_latitude['latitude'] = ''
 postInvalidCandidate(invalid_latitude)
 
 #-------------------------------------------------------------------------------
@@ -185,6 +189,11 @@ postInvalidCandidate(invalid_longitude)
 invalid_longitude['longitude'] = '45 degrees'
 postInvalidCandidate(invalid_longitude)
 
+# d) Empty
+invalid_longitude['longitude'] = ''
+postInvalidCandidate(invalid_longitude)
+
+'''
 #-------------------------------------------------------------------------------
 # Invalid birthdate (optional, but if present should be valid )
 # format is DD/MM/YYYY
@@ -263,4 +272,4 @@ postInvalidCandidate(invalid_tags)
 # b) List of non-strings
 invalid_tags['tags'] = [1, 2, 3]
 postInvalidCandidate(invalid_tags)
-
+'''

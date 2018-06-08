@@ -64,6 +64,91 @@
             <!-- /ko -->
         </table>
         <button data-bind="click: beginAdd" class="btn">Add Candidate</button>
+        <button class="btn" onClick="window.location.reload()">Refresh list</button>
+    </div>
+    <div id="add" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="addDialogLabel">Add Candidate</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="inputName">Name</label>
+                    <div class="controls">
+                        <input data-bind="value: name" type="text" id="inputTask" placeholder="Candidate name" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputGender">Gender</label>
+                    <div class="controls">
+                        <input data-bind="value: gender" type="number" id="inputDescription" placeholder="1" style="width: 50px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputEmail">Email</label>
+                    <div class="controls">
+                        <input data-bind="value: email" type="email" id="inputDescription" placeholder="fake@example.com" style="width: 200px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputPhone">Phone</label>
+                    <div class="controls">
+                        <input data-bind="value: phone" type="text" id="inputDescription" placeholder="11912344321" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputAddress">Address</label>
+                    <div class="controls">
+                        <input data-bind="value: address" type="text" id="inputDescription" placeholder="Rua" style="width: 300px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputBirthdate">Birthdate</label>
+                    <div class="controls">
+                        <input data-bind="value: birthdate" type="text" id="inputDescription" placeholder="DD/MM/AAAA" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputLatitude">Latitude</label>
+                    <div class="controls">
+                        <input data-bind="value: latitude" type="number" step=0.0001 id="inputDescription" placeholder="12.0000" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputLongitude">Longitude</label>
+                    <div class="controls">
+                        <input data-bind="value: longitude" type="number" step=0.0001 id="inputDescription" placeholder="12.5556" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputLongitude">Education</label>
+                    <div class="controls">
+                        <input data-bind="value: education1" type="text" id="inputEducation1" placeholder="University #1" style="width: 150px;">
+                        <input data-bind="value: education2" type="text" id="inputEducation2" placeholder="University #2" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputLongitude">Experience</label>
+                    <div class="controls">
+                        <input data-bind="value: experience1" type="text" id="inputExperience1" placeholder="Job #1" style="width: 150px;">
+                        <input data-bind="value: experience2" type="text" id="inputExperience2" placeholder="Job #2" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputLongitude">Tags</label>
+                    <div class="controls">
+                        <input data-bind="value: tags1" type="text" id="inputTags1" placeholder="Tag #1" style="width: 150px;">
+                        <input data-bind="value: tags2" type="text" id="inputTags2" placeholder="Tag #2" style="width: 150px;">
+                    </div>
+                </div>
+                
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button data-bind="click: addCandidate" class="btn btn-primary">Add Candidate</button>
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        </div>
     </div>
     <script type="text/javascript">
         function CandidatesViewModel() {
@@ -94,13 +179,36 @@
             }
 
             self.beginAdd = function() {
-                alert("Add");
+                $('#add').modal('show');
+            }
+            self.add = function(task) {
+                self.ajax(self.candidatesURI, 'POST', task).done(function(data) {
+                    self.candidates.push({
+                        id: ko.observable(data.inserted.id),
+                        name: ko.observable(data.inserted.name),
+                        gender: ko.observable(data.inserted.gender),
+                        email: ko.observable(data.inserted.email),
+                        phone: ko.observable(data.inserted.phone),
+                        address: ko.observable(data.inserted.address),
+                        birthdate: ko.observable(data.inserted.birthdate),
+                        latitude: ko.observable(data.inserted.latitude),
+                        longitude: ko.observable(data.inserted.longitude),
+                        education: ko.observable(data.inserted.education),
+                        experience: ko.observable(data.inserted.experience),
+                        tags: ko.observable(data.inserted.tags),
+                        picture: ko.observable(data.inserted.picture),
+
+                    });
+                });
             }
             self.beginEdit = function(candidate) {
                 alert("Edit: " + candidate.name());
             }
             self.remove = function(candidate) {
-                alert("Remove: " + candidate.name());
+                console.log(self.candidatesURI + '/' + candidate.id())
+                self.ajax(self.candidatesURI + '/' + candidate.id(), 'DELETE').done(function() {
+                    self.candidates.remove(candidate);
+                });
             }
             
             self.ajax(self.candidatesURI, 'GET').done(function(data) {
@@ -123,10 +231,60 @@
                 }
             });
         }
+        function AddCandidateViewModel() {
+            var self = this;
+            self.name = ko.observable();
+            self.gender = ko.observable();
+            self.email = ko.observable();
+            self.phone = ko.observable();
+            self.address = ko.observable();
+            self.birthdate = ko.observable();
+            self.latitude = ko.observable();
+            self.longitude = ko.observable();
+            self.education1 = ko.observable();
+            self.education2 = ko.observable();
+            self.experience1 = ko.observable();
+            self.experience2 = ko.observable();
+            self.tags1 = ko.observable();
+            self.tags2 = ko.observable();
+ 
+            self.addCandidate = function() {
+                $('#add').modal('hide');
+
+                candidatesViewModel.add({
+                    name: self.name(),
+                    gender: parseInt(self.gender(), 10),
+                    email: self.email(),
+                    phone: self.phone(),
+                    address: self.address(),
+                    birthdate: self.birthdate(),
+                    latitude: parseFloat(self.latitude(), 10),
+                    longitude: parseFloat(self.longitude(), 10),
+                    education: [self.education1(), self.education2()],
+                    experience: [self.experience1(), self.experience2()],
+                    tags: [self.tags1(), self.tags2()]
+                });
+                self.name("");
+                self.gender("");
+                self.email("");
+                self.phone("");
+                self.address("");
+                self.birthdate("");
+                self.latitude("");
+                self.longitude("");
+                self.education1("");
+                self.education2("");
+                self.experience1("");
+                self.experience2("");
+                self.tags1("");
+                self.tags2("");
+            }
+        }
         
-        //$().ready(function() {
-            ko.applyBindings(new CandidatesViewModel(), $('#main')[0]);
-        //});
+        var candidatesViewModel = new CandidatesViewModel();
+        var addCandidateViewModel = new AddCandidateViewModel();
+        ko.applyBindings(candidatesViewModel, $('#main')[0]);
+        ko.applyBindings(addCandidateViewModel, $('#add')[0]);
     </script>
 </body>
 </html>
