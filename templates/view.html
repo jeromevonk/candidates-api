@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Candidates Client</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
-<script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.js"></script>
-<script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
-<script src="https://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
+    <title>Candidates Client</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.js"></script>
+    <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <!-- <script src="https://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script> -->
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js'></script>
 </head>
 <body>
     <div class="navbar">
@@ -14,12 +15,12 @@
             <a class="brand" href="#">Candidates Client</a>
         </div>
     </div>
-    
+
     <div class = "container">
         <div class = "starter-template">
             <p> By <b>Jerome Vonk</b> - June, 2018 </p>
             <p> Please note that this page is still under construction </p>
-            <p> More information <a href="https://github.com/jeromevonk/candidates-api/blob/master/README.md" target="blank">here </a> 
+            <p> More information <a href="https://github.com/jeromevonk/candidates-api/blob/master/README.md" target="blank">here </a>
             |  Try uploading a batch <a href="/batch_insert.html" target="blank">here </a> </p>
         </div>
     </div>
@@ -31,7 +32,7 @@
                 <td></td>
                 <td></td>
                 <td><b>Options</b></td></tr>
-            <!-- ko foreach: candidates -->
+            <!-- ko foreach: candidates_array -->
             <tr>
                 <td>
                     <p>Name: <b data-bind="text: name"></b></p>
@@ -51,7 +52,7 @@
                     <p>Tags: <b data-bind="text: tags"></b></p>
                 <td>
                     <div data-bind="style: { background: 'url(data:image/png;base64,' + picture() + ')'}"></div>
-                    <img alt="" data-bind="attr: { src: 'data:image/png;base64,' + picture() }" /> 
+                    <img alt="" data-bind="attr: { src: 'data:image/png;base64,' + picture() }" />
                 </td>
                 <td>
 
@@ -82,7 +83,7 @@
                 <div class="control-group">
                     <label class="control-label" for="inputGender">Gender</label>
                     <div class="controls">
-                        <input data-bind="value: gender" type="number" id="inputDescription" placeholder="1" style="width: 50px;">
+                        <input data-bind="value: gender" type="number" id="inputDescription" placeholder="1" value="1" style="width: 50px;">
                     </div>
                 </div>
                 <div class="control-group">
@@ -122,27 +123,34 @@
                     </div>
                 </div>
                 <div class="control-group">
-                    <label class="control-label" for="inputLongitude">Education</label>
+                    <label class="control-label" for="inputEducation">Education</label>
                     <div class="controls">
                         <input data-bind="value: education1" type="text" id="inputEducation1" placeholder="University #1" style="width: 150px;">
                         <input data-bind="value: education2" type="text" id="inputEducation2" placeholder="University #2" style="width: 150px;">
                     </div>
                 </div>
                 <div class="control-group">
-                    <label class="control-label" for="inputLongitude">Experience</label>
+                    <label class="control-label" for="inputExperience">Experience</label>
                     <div class="controls">
                         <input data-bind="value: experience1" type="text" id="inputExperience1" placeholder="Job #1" style="width: 150px;">
                         <input data-bind="value: experience2" type="text" id="inputExperience2" placeholder="Job #2" style="width: 150px;">
                     </div>
                 </div>
                 <div class="control-group">
-                    <label class="control-label" for="inputLongitude">Tags</label>
+                    <label class="control-label" for="inputTags">Tags</label>
                     <div class="controls">
                         <input data-bind="value: tags1" type="text" id="inputTags1" placeholder="Tag #1" style="width: 150px;">
                         <input data-bind="value: tags2" type="text" id="inputTags2" placeholder="Tag #2" style="width: 150px;">
                     </div>
                 </div>
-                
+                <div class="control-group">
+                    <label class="control-label" for="Picture">Picture</label>
+                    <div class="controls">
+                        <label class="btn btn-default btn-file">
+                            Browse <input type="file" data-bind="event: { change: function() { uploadImage($element.files[0]) } }" style="display: none;" accept="image/jpeg">
+                        </label>
+                    </div>
+                </div>
             </form>
         </div>
         <div class="modal-footer">
@@ -150,13 +158,106 @@
             <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
         </div>
     </div>
+    <div id="edit" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="editDialogLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="editDialogLabel">Edit Candidate</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="inputName">Name</label>
+                    <div class="controls">
+                        <input data-bind="value: name" type="text" id="inputTask" placeholder="Candidate name" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputGender">Gender</label>
+                    <div class="controls">
+                        <input data-bind="value: gender" type="number" id="inputDescription" placeholder="1" value="1" style="width: 50px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputEmail">Email</label>
+                    <div class="controls">
+                        <input data-bind="value: email" type="email" id="inputDescription" placeholder="fake@example.com" style="width: 200px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputPhone">Phone</label>
+                    <div class="controls">
+                        <input data-bind="value: phone" type="text" id="inputDescription" placeholder="11912344321" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputAddress">Address</label>
+                    <div class="controls">
+                        <input data-bind="value: address" type="text" id="inputDescription" placeholder="Rua" style="width: 300px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputBirthdate">Birthdate</label>
+                    <div class="controls">
+                        <input data-bind="value: birthdate" type="text" id="inputDescription" placeholder="DD/MM/AAAA" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputLatitude">Latitude</label>
+                    <div class="controls">
+                        <input data-bind="value: latitude" type="number" step=0.0001 id="inputDescription" placeholder="12.0000" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputLongitude">Longitude</label>
+                    <div class="controls">
+                        <input data-bind="value: longitude" type="number" step=0.0001 id="inputDescription" placeholder="12.5556" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputEducation">Education</label>
+                    <div class="controls">
+                        <input data-bind="value: education1" type="text" id="inputEducation1" placeholder="University #1" style="width: 150px;">
+                        <input data-bind="value: education2" type="text" id="inputEducation2" placeholder="University #2" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputExperience">Experience</label>
+                    <div class="controls">
+                        <input data-bind="value: experience1" type="text" id="inputExperience1" placeholder="Job #1" style="width: 150px;">
+                        <input data-bind="value: experience2" type="text" id="inputExperience2" placeholder="Job #2" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputTags">Tags</label>
+                    <div class="controls">
+                        <input data-bind="value: tags1" type="text" id="inputTags1" placeholder="Tag #1" style="width: 150px;">
+                        <input data-bind="value: tags2" type="text" id="inputTags2" placeholder="Tag #2" style="width: 150px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputPicture">Picture</label>
+                    <div class="controls">
+                        <label class="btn btn-default btn-file">
+                            Browse <input type="file" data-bind="event: { change: function() { uploadImage($element.files[0]) } }" style="display: none;" accept="image/jpeg">
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button data-bind="click: editCandidate" class="btn btn-primary">Update Candidate</button>
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        </div>
+    </div>
+
+
     <script type="text/javascript">
         function CandidatesViewModel() {
             var self = this;
             self.candidatesURI = '../candidates/api/v1.0/candidates';
             self.username = "user";
             self.password = "123";
-            self.candidates = ko.observableArray();
+            self.candidates_array = ko.observableArray();
 
             self.ajax = function(uri, method, data) {
                 var request = {
@@ -168,7 +269,7 @@
                     dataType: 'json',
                     data: JSON.stringify(data),
                     beforeSend: function (xhr) {
-                        xhr.setRequestHeader("Authorization", 
+                        xhr.setRequestHeader("Authorization",
                             "Basic " + btoa(self.username + ":" + self.password));
                     },
                     error: function(jqXHR) {
@@ -178,12 +279,29 @@
                 return $.ajax(request);
             }
 
+            self.updateCandidate = function(candidate, newCandidate) {
+                var i = self.candidates_array.indexOf(candidate);
+                self.candidates_array()[i].id(newCandidate.id);
+                self.candidates_array()[i].name(newCandidate.name);
+                self.candidates_array()[i].gender(newCandidate.gender);
+                self.candidates_array()[i].email(newCandidate.email);
+                self.candidates_array()[i].phone(newCandidate.phone);
+                self.candidates_array()[i].address(newCandidate.address);
+                self.candidates_array()[i].birthdate(newCandidate.birthdate);
+                self.candidates_array()[i].latitude(newCandidate.latitude);
+                self.candidates_array()[i].longitude(newCandidate.longitude);
+                self.candidates_array()[i].education(newCandidate.education);
+                self.candidates_array()[i].experience(newCandidate.experience);
+                self.candidates_array()[i].tags(newCandidate.tags);
+                self.candidates_array()[i].picture(newCandidate.picture);
+            }
+
             self.beginAdd = function() {
                 $('#add').modal('show');
             }
             self.add = function(task) {
                 self.ajax(self.candidatesURI, 'POST', task).done(function(data) {
-                    self.candidates.push({
+                    self.candidates_array.push({
                         id: ko.observable(data.inserted.id),
                         name: ko.observable(data.inserted.name),
                         gender: ko.observable(data.inserted.gender),
@@ -202,18 +320,23 @@
                 });
             }
             self.beginEdit = function(candidate) {
-                alert("Edit: " + candidate.name());
+                editCandidateViewModel.setCandidate(candidate);
+                $('#edit').modal('show');
             }
-            self.remove = function(candidate) {
-                console.log(self.candidatesURI + '/' + candidate.id())
-                self.ajax(self.candidatesURI + '/' + candidate.id(), 'DELETE').done(function() {
-                    self.candidates.remove(candidate);
+            self.edit = function(candidate, data) {
+                self.ajax(self.candidatesURI + '/' + candidate.id(), 'PUT', data).done(function(res) {
+                    self.updateCandidate(candidate, res.updated);
                 });
             }
-            
+            self.remove = function(candidate) {
+                self.ajax(self.candidatesURI + '/' + candidate.id(), 'DELETE').done(function() {
+                    self.candidates_array.remove(candidate);
+                });
+            }
+
             self.ajax(self.candidatesURI, 'GET').done(function(data) {
                 for (var i = 0; i < data.candidates.length; i++) {
-                    self.candidates.push({
+                    self.candidates_array.push({
                         id: ko.observable(data.candidates[i].id),
                         name: ko.observable(data.candidates[i].name),
                         gender: ko.observable(data.candidates[i].gender),
@@ -233,6 +356,79 @@
         }
         function AddCandidateViewModel() {
             var self = this;
+            
+            self.name = ko.observable("");
+            self.gender = ko.observable("");
+            self.email = ko.observable("");
+            self.phone = ko.observable("");
+            self.address = ko.observable("");
+            self.birthdate = ko.observable();
+            self.latitude = ko.observable();
+            self.longitude = ko.observable();
+            self.education1 = ko.observable("");
+            self.education2 = ko.observable("");
+            self.experience1 = ko.observable("");
+            self.experience2 = ko.observable("");
+            self.tags1 = ko.observable("");
+            self.tags2 = ko.observable("");
+            self.picture = "";
+            
+            self.uploadImage = function (file) 
+            {
+                /* Is the file an image? */
+                if (!file || !file.type.match(/image.*/)) return;
+
+                var reader = new FileReader();
+                
+                reader.addEventListener("load", function () { self.picture = reader.result.split(',')[1];}, false);
+                reader.readAsDataURL(file);
+            };
+            
+           
+            self.addCandidate = function() {
+                $('#add').modal('hide');
+                
+                console.log(self.picture)
+                
+                to_add = 
+                {
+                    name: self.name(),
+                    gender: parseInt(self.gender(), 10),
+                    email: self.email(),
+                    phone: self.phone(),
+                    address: self.address(),
+                    birthdate: self.birthdate(),
+                    latitude: parseFloat(self.latitude(), 10),
+                    longitude: parseFloat(self.longitude(), 10),
+                    education: [self.education1(), self.education2()],
+                    experience: [self.experience1(), self.experience2()],
+                    tags: [self.tags1(), self.tags2()],
+                    picture: self.picture,
+                }
+
+                candidatesViewModel.add(to_add);
+                
+                <!-- Reset -->
+                self.name("");
+                self.gender("");
+                self.email("");
+                self.phone("");
+                self.address("");
+                self.birthdate("");
+                self.latitude("");
+                self.longitude("");
+                self.education1("");
+                self.experience1("");
+                self.tags1("");
+                self.education2("");
+                self.experience2("");
+                self.tags2("");
+                self.picture = "";
+            }
+        }
+
+        function EditCandidateViewModel() {
+            var self = this;
             self.name = ko.observable();
             self.gender = ko.observable();
             self.email = ko.observable();
@@ -247,11 +443,54 @@
             self.experience2 = ko.observable();
             self.tags1 = ko.observable();
             self.tags2 = ko.observable();
- 
-            self.addCandidate = function() {
-                $('#add').modal('hide');
+            self.picture = "";
+            
+            self.uploadImage = function (file) 
+            {
+                console.log(file);
+                /* Is the file an image? */
+                if (!file || !file.type.match(/image.*/)) return;
 
-                candidatesViewModel.add({
+                console.log("Por aqui...")
+                var reader = new FileReader();
+                
+                reader.addEventListener("load", function () { self.picture = reader.result.split(',')[1];}, false);
+                reader.readAsDataURL(file);
+            };
+
+            self.setCandidate= function(candidate) {
+                self.candidate = candidate;
+                self.name(candidate.name());
+                self.gender(candidate.gender());
+                self.email(candidate.email());
+                self.phone(candidate.phone());
+                self.address(candidate.address());
+                self.birthdate(candidate.birthdate());
+                self.latitude(candidate.latitude());
+                self.longitude(candidate.longitude());
+                self.education1(candidate.education()[0]);
+                self.experience1(candidate.experience()[0]);
+                self.tags1  (candidate.tags()[0]);
+                self.education2(candidate.education()[1]);
+                self.experience2(candidate.experience()[1]);
+                self.tags2(candidate.tags()[1]);
+                self.picture = candidate.picture;
+
+                $('edit').modal('show');
+            }
+
+            self.editCandidate = function() {
+                $('#edit').modal('hide');
+
+                if ( typeof self.education1() == 'undefined') {self.education1(""); }
+                if ( typeof self.education2() == 'undefined') {self.education2(""); }
+                if ( typeof self.experience1() == 'undefined') {self.experience1(""); }
+                if ( typeof self.experience2() == 'undefined') {self.experience2(""); }
+                if ( typeof self.tags1() == 'undefined') {self.tags1(""); }
+                if ( typeof self.tags2() == 'undefined') {self.tags2(""); }
+
+                edited =
+                {
                     name: self.name(),
                     gender: parseInt(self.gender(), 10),
                     email: self.email(),
@@ -262,8 +501,13 @@
                     longitude: parseFloat(self.longitude(), 10),
                     education: [self.education1(), self.education2()],
                     experience: [self.experience1(), self.experience2()],
-                    tags: [self.tags1(), self.tags2()]
-                });
+                    tags: [self.tags1(), self.tags2()],
+                    picture: self.picture
+                }
+
+                candidatesViewModel.edit(self.candidate, edited);
+
+                <!-- Reset -->
                 self.name("");
                 self.gender("");
                 self.email("");
@@ -278,13 +522,16 @@
                 self.experience2("");
                 self.tags1("");
                 self.tags2("");
+                self.picture = "";
             }
         }
-        
+
         var candidatesViewModel = new CandidatesViewModel();
         var addCandidateViewModel = new AddCandidateViewModel();
+        var editCandidateViewModel = new EditCandidateViewModel();
         ko.applyBindings(candidatesViewModel, $('#main')[0]);
         ko.applyBindings(addCandidateViewModel, $('#add')[0]);
+        ko.applyBindings(editCandidateViewModel, $('#edit')[0]);
     </script>
 </body>
 </html>

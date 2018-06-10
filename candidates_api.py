@@ -157,6 +157,7 @@ REQUIRED = ['name', 'email', 'gender', 'phone', 'address']
 @app.route("/")
 def start_page():
     ''' Shows the index page '''
+    #return render_template('view.html')
     return render_template('view.html')
 
 # ----------------------------------------------------------------------------------
@@ -181,7 +182,6 @@ def get_candidates():
         # Add to list
         to_return.append(candidate_dict)
 
-    #return jsonify(to_return)
     return jsonify( { 'candidates': to_return } )
 
 # ----------------------------------------------------------------------------------
@@ -200,7 +200,6 @@ def get_candidate(candidate_id):
     # Convert from database to a dictionary
     candidate_dict = dictFromDB(candidate)
 
-    #return jsonify(candidate_dict), 201
     return jsonify( { 'candidate': candidate_dict } )
 
 # ----------------------------------------------------------------------------------
@@ -255,7 +254,6 @@ def insert():
     # Convert from database to a dictionary
     candidate_dict = dictFromDB(new_candidate)
 
-    #return jsonify(candidate_dict), 201
     return jsonify( { 'inserted': candidate_dict } )
 
 # ----------------------------------------------------------------------------------
@@ -361,7 +359,7 @@ def update_candidate(candidate_id):
     # Convert from database to a dictionary
     candidate_dict = dictFromDB(db_candidate)
 
-    return jsonify(candidate_dict), 201
+    return jsonify( { 'updated': candidate_dict } )
 
 # ----------------------------------------------------------------------------------
 # Delete a candidate
@@ -439,7 +437,6 @@ def convertToList(info):
     
     # Deserialize
     info = base64.b64decode(info).decode("utf-8")
-    print(info)
 
     # Remove some characters
     info = re.sub('\]|"', '', info)
@@ -452,7 +449,6 @@ def convertToList(info):
     if list is None:
         myList = []
 
-    print(myList)
     return myList
 
 def dictFromDB(db_entry):
@@ -494,7 +490,6 @@ def dictFromDB(db_entry):
 
 def validateCandidate(candidate):
     ''' Validate all parameters for a candidate'''
-    print(candidate)
 
     # Name is mandatory
     if 'name' not in candidate:
