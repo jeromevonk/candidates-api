@@ -8,7 +8,7 @@ def zipdir(path, ziph):
             print(os.path.join(root, file))
             ziph.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(path, '..')))
 
-zf = zipfile.ZipFile('candidates_api.zip', mode='w', compression=zipfile.ZIP_DEFLATED)
+zf = zipfile.ZipFile('bundle_aws.zip', mode='w', compression=zipfile.ZIP_DEFLATED)
 
 zf.write('candidates_api.py')
 zf.write('requirements.txt')
