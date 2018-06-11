@@ -376,9 +376,14 @@
             {
                 /* Is the file an image? */
                 if (!file || !file.type.match(/image.*/)) return;
+                
+                if (file.size > 100 * 1024 )
+                {
+                    alert("Sorry, that image is (for now) too big for this poor front-end app! Try smaller than 100KB")
+                    return
+                }
 
                 var reader = new FileReader();
-                
                 reader.addEventListener("load", function () { self.picture = reader.result.split(',')[1];}, false);
                 reader.readAsDataURL(file);
             };
@@ -442,13 +447,16 @@
             
             self.uploadImage = function (file) 
             {
-                console.log(file);
                 /* Is the file an image? */
                 if (!file || !file.type.match(/image.*/)) return;
-
-                console.log("Por aqui...")
-                var reader = new FileReader();
                 
+                if (file.size > 100 * 1024 )
+                {
+                    alert("Sorry, that image is (for now) too big for this poor front-end app! Try smaller than 100KB")
+                    return
+                }
+
+                var reader = new FileReader();
                 reader.addEventListener("load", function () { self.picture = reader.result.split(',')[1];}, false);
                 reader.readAsDataURL(file);
             };
