@@ -14,25 +14,34 @@ from requests.auth import HTTPBasicAuth
 #------------------------------------------------------------------------------- 
 LOCAL  = 'http://localhost:5000/candidates/api/v1.0/'
 HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v1.0/'
+AWS    = 'http://candidates-api.sa-east-1.elasticbeanstalk.com/candidates/api/v1.0/'
 
 # Default to localhost
 URL_BASE = LOCAL
 
-# Parse command line argument
+# Parse command line arguments
 if len(sys.argv) > 1:
+    try:
+        # Get candidate ID
+        candidate_id = int(sys.argv[1])
+    except:
+        pass
+        
+if len(sys.argv) > 2:
     if 'heroku' == sys.argv[1]:
-        URL_BASE = HEROKU 
+        URL_BASE = HEROKU
+    if 'aws' == sys.argv[1]:
+        URL_BASE = AWS    
 
 _pswd  = getpass.getpass('Password: ')  
 #-------------------------------------------------------------------------------
 # Delete one candidate a time
 #-------------------------------------------------------------------------------
 try:
-    for i in range(1, 3):
-        url = URL_BASE + 'candidates/{}'.format(i)
-        r = requests.delete(url, auth=('user', _pswd))
-        print(r.status_code)
-        print(r.text)
+    url = URL_BASE + 'candidates/{}'.format(candidate_id)
+    r = requests.delete(url, auth=('user', _pswd))
+    print(r.status_code)
+    print(r.text)
     
 except requests.exceptions.RequestException as e:
     print(e)

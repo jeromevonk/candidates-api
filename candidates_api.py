@@ -18,11 +18,40 @@ import sys
 import traceback
 import base64
 import re
+import logging
+
+
+
+# ----------------------------------------------------------------------------------
+# Different platform configurations
+# ----------------------------------------------------------------------------------
+platform = "local"
+
+if platform == "AWS":
+    log_file = filename='/opt/python/log/candidates_api.log'
+else:
+    log_file = filename='candidates_api.log'
+
+# Create logger    
+logger = logging.getLogger('candidates_api')
+logger.setLevel(logging.DEBUG)
+
+# Create file handler and formatter
+fh = logging.FileHandler(log_file)
+fh.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# Set formater and add handler
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+    
+
 
 # ----------------------------------------------------------------------------------
 # Initialization
 # ----------------------------------------------------------------------------------
-app = Flask(__name__, static_url_path = "")
+application = Flask(__name__, static_url_path = "")
+app = application #dirty trick for elastib beanstalk. see (http://blog.uptill3.com/2012/08/25/python-on-elastic-beanstalk.html)
 auth = HTTPBasicAuth()
 
 # Get path to database
@@ -55,12 +84,14 @@ def verify_password(user, password):
         hashed_passwd = login[user][0]
         salt = login[user][1]
     except:
+        logger.error('User not in database. User: {} | password: {}'.format(user, password) )
         return False
 
     # Verify password
     if hashlib.sha256( password.encode('utf-8') + salt ).hexdigest() == hashed_passwd:
         return True
 
+    logger.error('Authentication failed. User: {} | password: {} | hashed: {} | calculated: {}'.format(user, password, hashed_passwd, hashlib.sha256( password.encode('utf-8') + salt ).hexdigest() ) )
     return False
 
 # ----------------------------------------------------------------------------------
@@ -134,7 +165,9 @@ class Candidate(db.Model):
             else:
                 # Do not save picture in database
                 # Save it in the filesystem and store path in database
-                picture_path =  os.path.join(app.config['UPLOAD_FOLDER'], "{}{}".format(self.name, '.jpg') )
+                logger.info(self.name)
+                picture_path = os.path.join(app.config['UPLOAD_FOLDER'].encode('utf-8'), "{}{}".format(self.name, '.jpg').encode('utf-8') )
+                logger.info(picture_path)
                 with open(picture_path, 'wb') as fo:
                     fo.write(info['picture'])
 

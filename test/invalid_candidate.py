@@ -25,6 +25,7 @@ def postInvalidCandidate(candidate):
 #------------------------------------------------------------------------------- 
 LOCAL  = 'http://localhost:5000/candidates/api/v1.0/'
 HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v1.0/'
+AWS    = 'http://candidates-api.sa-east-1.elasticbeanstalk.com/candidates/api/v1.0/'
 
 # Default to localhost
 URL_BASE = LOCAL
@@ -32,7 +33,9 @@ URL_BASE = LOCAL
 # Parse command line argument
 if len(sys.argv) > 1:
     if 'heroku' == sys.argv[1]:
-        URL_BASE = HEROKU 
+        URL_BASE = HEROKU
+    if 'aws' == sys.argv[1]:
+        URL_BASE = AWS
 
  
 #-------------------------------------------------------------------------------
@@ -42,7 +45,7 @@ url = URL_BASE + 'candidates'
 template = { "name" : "Jerome Vonkkkie", "picture" : "", "birthdate" : "01/02/1988", "gender" : 1,
              "email" : "vonk@gmail.com", "phone" : "11912345678", "address" : "Avenida Paulista, 1",
              "longitude": -12.75, "latitude": 45.11122, "tags" : [], "experience" : [], "education" : []}
-'''
+
 #-------------------------------------------------------------------------------
 # Invalid / missing name
 #------------------------------------------------------------------------------- 
@@ -272,4 +275,3 @@ postInvalidCandidate(invalid_tags)
 # b) List of non-strings
 invalid_tags['tags'] = [1, 2, 3]
 postInvalidCandidate(invalid_tags)
-'''

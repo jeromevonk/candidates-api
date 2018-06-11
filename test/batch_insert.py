@@ -24,6 +24,7 @@ def sendBatch(filename, multipart_form_data):
 #------------------------------------------------------------------------------- 
 LOCAL  = 'http://localhost:5000/candidates/api/v1.0/'
 HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v1.0/'
+AWS    = 'http://candidates-api.sa-east-1.elasticbeanstalk.com/candidates/api/v1.0/'
 
 # Default to localhost
 URL_BASE = LOCAL
@@ -31,9 +32,10 @@ URL_BASE = LOCAL
 # Parse command line argument
 if len(sys.argv) > 1:
     if 'heroku' == sys.argv[1]:
-        URL_BASE = HEROKU 
+        URL_BASE = HEROKU
+    if 'aws' == sys.argv[1]:
+        URL_BASE = AWS
 
- 
 #-------------------------------------------------------------------------------
 # Insert a batch of candidates by sendind a zip file
 #-------------------------------------------------------------------------------

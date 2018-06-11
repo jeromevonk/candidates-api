@@ -15,6 +15,7 @@ from get_all_candidates import getAllCandidates
 #-------------------------------------------------------------------------------
 LOCAL  = 'http://localhost:5000/candidates/api/v1.0/'
 HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v1.0/'
+AWS    = 'http://candidates-api.sa-east-1.elasticbeanstalk.com/candidates/api/v1.0/'
 
 # Default to localhost
 URL_BASE = LOCAL
@@ -23,6 +24,8 @@ URL_BASE = LOCAL
 if len(sys.argv) > 1:
     if 'heroku' == sys.argv[1]:
         URL_BASE = HEROKU
+    if 'aws' == sys.argv[1]:
+        URL_BASE = AWS
 
 #-------------------------------------------------------------------------------
 # Find the candidate ID
