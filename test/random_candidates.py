@@ -60,7 +60,7 @@ rw = RandomWords()
 rn = RandomNicknames()
 fake = Faker('pt_BR')
 
-for i in range(20):
+for i in range(10):
     
     # Generate a name and set gender
     if i%2 == 0:
