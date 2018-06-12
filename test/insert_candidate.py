@@ -15,7 +15,8 @@ def postCandidate(candidate):
     try:
         r = requests.post(url, json = candidate)
         print(r.status_code)
-        print(r.text)
+        if r.status_code not in range(200, 300):
+            print(r.text)
         
     except requests.exceptions.RequestException as e:
         print(e)

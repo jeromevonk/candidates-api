@@ -27,6 +27,11 @@ The API expects documents in JSON format.
 | PUT    | /candidates/api/v1.0/candidates/id    | Update a candidate         |Yes|
 | DELETE | /candidates/api/v1.0/candidates/id    | Delete a candidate         |Yes|
 
+####These are the credentials:
+
+User: user
+Password: 123
+
 ------
 
 #### And these are the parameters for a candidate:

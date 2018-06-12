@@ -20,8 +20,6 @@ import base64
 import re
 import logging
 
-
-
 # ----------------------------------------------------------------------------------
 # Different platform configurations
 # ----------------------------------------------------------------------------------
@@ -32,7 +30,7 @@ if platform == "AWS":
 else:
     log_file = filename='candidates_api.log'
 
-# Create logger    
+# Create logger
 logger = logging.getLogger('candidates_api')
 logger.setLevel(logging.DEBUG)
 
@@ -44,7 +42,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 # Set formater and add handler
 fh.setFormatter(formatter)
 logger.addHandler(fh)
-    
+
 # ----------------------------------------------------------------------------------
 # Initialization
 # ----------------------------------------------------------------------------------
@@ -163,9 +161,7 @@ class Candidate(db.Model):
             else:
                 # Do not save picture in database
                 # Save it in the filesystem and store path in database
-                logger.info(self.name)
                 picture_path = os.path.join(app.config['UPLOAD_FOLDER'].encode('utf-8'), "{}{}".format(self.name, '.jpg').encode('utf-8') )
-                logger.info(picture_path)
                 with open(picture_path, 'wb') as fo:
                     fo.write(info['picture'])
 
@@ -188,7 +184,6 @@ REQUIRED = ['name', 'email', 'gender', 'phone', 'address']
 @app.route("/")
 def start_page():
     ''' Shows the index page '''
-    #return render_template('view.html')
     return render_template('view.html')
 
 # ----------------------------------------------------------------------------------
@@ -196,7 +191,7 @@ def start_page():
 # ----------------------------------------------------------------------------------
 @app.route('/candidates/api/v1.0/candidates', methods = ['GET'])
 def get_candidates():
-    ''' Get all candidates information from database '''
+    ''' Get all candidate's information from database '''
 
     # Query all candidates
     all_candidates = Candidate.query.all()
@@ -284,6 +279,9 @@ def insert():
 
     # Convert from database to a dictionary
     candidate_dict = dictFromDB(new_candidate)
+    
+    # Log
+    logger.info("Updated candidate with ID = {}".format(candidate_dict['id']))
 
     return jsonify( { 'inserted': candidate_dict } )
 
@@ -303,7 +301,7 @@ def batch_insert():
         # Not a valid zipfile, abort
         return jsonify({'error' : 'Not a valid .zip file'}), 400
 
-    # Get a list of json objects contained in the ZipFile 
+    # Get a list of json objects contained in the ZipFile
     try:
         list_candidates = [json.loads(myZip.read(name)) for name in myZip.namelist() if '.json' in name]
     except:
@@ -359,6 +357,9 @@ def batch_insert():
             db_candidate.update(candidate)
             db.session.commit()
             candidates_updated += 1
+            
+    # Log
+    logger.info("Batch insert | Added : {}, Updated : {}, Invalid: {}".format(candidates_added, candidates_updated, invalid_candidates))
 
     return jsonify({'added' : candidates_added, 'updated' : candidates_updated, 'invalid': invalid_candidates}), 201
 
@@ -389,6 +390,9 @@ def update_candidate(candidate_id):
 
     # Convert from database to a dictionary
     candidate_dict = dictFromDB(db_candidate)
+    
+    # Log
+    logger.info("Updated candidate with ID = {}".format(candidate_id))
 
     return jsonify( { 'updated': candidate_dict } )
 
@@ -406,6 +410,9 @@ def delete_candidate(candidate_id):
 
     db.session.delete(candidate)
     db.session.commit()
+    
+    # Log
+    logger.info("Deleted candidate with ID = {}".format(candidate_id))
 
     return jsonify( { 'result': True } )
 
@@ -419,6 +426,9 @@ def delete_all():
     ''' Delete all candidates from database '''
     db.session.query(Candidate).delete()
     db.session.commit()
+    
+    # Log
+    logger.info("Deleted all candidates")
 
     return jsonify( { 'result': True } )
 
@@ -461,11 +471,11 @@ def request_all():
 def convertToList(info):
     ''' Create a list from base64 encoded string'''
     myList = []
-    
+
     # If info is empty
     if info is None:
         return myList
-    
+
     # Deserialize
     info = base64.b64decode(info).decode("utf-8")
 
@@ -475,7 +485,7 @@ def convertToList(info):
 
     # Conver it to a list
     myList = info.split(',')
-    
+
     # If list is NoneType, create a new list
     if list is None:
         myList = []
@@ -494,7 +504,7 @@ def dictFromDB(db_entry):
     if db_entry.picture:
         with open(db_entry.picture, 'rb') as fi:
             data = fi.read()
-            dict['picture'] = base64.b64encode(data).decode("utf-8")         
+            dict['picture'] = base64.b64encode(data).decode("utf-8")
     else:
         dict['picture'] = ""
 
@@ -587,7 +597,7 @@ def validateCandidate(candidate):
             except ValueError:
                 return False, 'Latitude should be a float'
             except:
-                return False, 'Wrong type for latitude' 
+                return False, 'Wrong type for latitude'
 
     if 'longitude' in candidate:
         if candidate['longitude'] is None:
@@ -602,14 +612,13 @@ def validateCandidate(candidate):
             except ValueError:
                 return False, 'Longitude should be a float'
             except:
-                return False, 'Wrong type for longitude' 
+                return False, 'Wrong type for longitude'
 
     # Birthdate is not mandatory, but if present should be in the format DD/MM/YYYY
     if 'birthdate' in candidate:
         if candidate['birthdate'] == "":
             # Invalid, so pop this key out of the dictionary
             candidate.pop('birthdate', None)
-
         else:
             try:
                 (day, month, year) = candidate['birthdate'].split('/');
