@@ -25,6 +25,10 @@
     </div>
 
     <div id="main" class="container">
+        <p>
+            <button data-bind="click: beginAdd" class="btn">Add Candidate</button>
+            <button class="btn" onClick="window.location.reload()">Refresh list</button>
+        </p>
         <table class="table table-striped">
             <tr>
                 <td><b>Candidate</b></td>
@@ -63,8 +67,7 @@
             </tr>
             <!-- /ko -->
         </table>
-        <button data-bind="click: beginAdd" class="btn">Add Candidate</button>
-        <button class="btn" onClick="window.location.reload()">Refresh list</button>
+        
     </div>
     <div id="add" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true">
         <div class="modal-header">
