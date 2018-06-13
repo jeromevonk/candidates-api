@@ -6,7 +6,7 @@
 
 from flask import Flask, jsonify, abort, request, make_response, url_for, render_template
 from flask_httpauth import HTTPBasicAuth
-from flask_sqlalchemy import SQLAlchemy
+
 from sqlalchemy import exc
 from flask_marshmallow import Marshmallow
 from zipfile import ZipFile, BadZipfile
@@ -19,6 +19,11 @@ import traceback
 import base64
 import re
 import logging
+
+# My modules
+import auxiliar as aux
+from models import db, Candidate, Education
+REQUIRED = ['name', 'email', 'gender', 'phone', 'address'] #TODO find a better way
 
 # ----------------------------------------------------------------------------------
 # Different platform configurations
@@ -63,16 +68,19 @@ app.config['UPLOAD_FOLDER'] = pics_path
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Must initialize SQLAlchemy before Marshmallow
-db = SQLAlchemy(app)
-ma = Marshmallow(app)
+# Initialize the database
+with app.app_context():
+    db.init_app(app)
+    db.create_all() 
+    
+   
 
 # Password is stored as a salted SHA-256 hash
 # Dictionary contains username as a key, then a tuple pair of hashed password and salt
 login = {'user': ("7655812bca678302fa70d06d913e52b23f638d66a27751f459af0b44cd6ac286", "1AaBb".encode('utf-8') ) }
 
 # ----------------------------------------------------------------------------------
-# Password callbacks
+# Password callback
 # ----------------------------------------------------------------------------------
 @auth.verify_password
 def verify_password(user, password):
@@ -104,79 +112,6 @@ def not_found(error):
 @auth.error_handler
 def unauthorized():
     return make_response(jsonify( { 'error': 'Unauthorized access' } ), 403)
-
-# ----------------------------------------------------------------------------------
-# Our database
-# ----------------------------------------------------------------------------------
-class Candidate(db.Model):
-    id           = db.Column(db.Integer, primary_key=True)
-    name         = db.Column(db.String(80), unique=True)
-    email        = db.Column(db.String(120), unique=True)
-    gender       = db.Column(db.SmallInteger)
-    phone        = db.Column(db.String(12))
-    address      = db.Column(db.String(120))
-    latitude     = db.Column(db.Float)
-    longitude    = db.Column(db.Float)
-    birthdate    = db.Column(db.Date)
-    picture      = db.Column(db.String(120))
-    experience   = db.Column(db.String(400))
-    education    = db.Column(db.String(400))
-    tags         = db.Column(db.String(200))
-
-    def __init__(self,  info):
-        self.fill_parameters(info)
-
-
-    def update(self,  info):
-        self.fill_parameters(info)
-
-    def fill_parameters(self, info):
-        self.name       =  info['name']
-        self.email      =  info['email']
-        self.gender     =  info['gender']
-        self.phone      =  info['phone']
-        self.address    =  info['address']
-
-        if 'latitude' in info:
-            self.latitude   =  info['latitude']
-
-        if 'longitude' in info:
-            self.longitude  =  info['longitude']
-
-        if 'birthdate' in info:
-            self.birthdate  =  info['birthdate']
-
-        if 'experience' in info:
-            self.experience  =  info['experience']
-
-        if 'education' in info:
-            self.education  =  info['education']
-
-        if 'tags' in info:
-            self.tags  =  info['tags']
-
-        if 'picture' in info:
-            if info['picture'] == "":
-                self.picture = info['picture']
-            else:
-                # Do not save picture in database
-                # Save it in the filesystem and store path in database
-                picture_path = os.path.join(app.config['UPLOAD_FOLDER'].encode('utf-8'), "{}{}".format(self.name, '.jpg').encode('utf-8') )
-                with open(picture_path, 'wb') as fo:
-                    fo.write(info['picture'])
-
-                # Store only the path in database
-                self.picture = picture_path
-
-class CandidateSchema(ma.Schema):
-    class Meta:
-        # Fields to expose
-        fields = ('id', 'name', 'email', 'gender', 'phone', 'address', 'latitude', 'longitude', 'birthdate', 'picture', 'experience', 'education', 'tags')
-
-user_schema  = CandidateSchema()
-users_schema = CandidateSchema(many=True)
-
-REQUIRED = ['name', 'email', 'gender', 'phone', 'address']
 
 # ----------------------------------------------------------------------------------
 # Index page
@@ -246,7 +181,7 @@ def insert():
     possible_candidate = request_all()
 
     # Validate candidate
-    valid, msg = validateCandidate(possible_candidate)
+    valid, msg = aux.validateCandidate(possible_candidate)
     if valid == False:
         return jsonify({'error' : msg}), 400
 
@@ -259,15 +194,24 @@ def insert():
         return jsonify({'error' : 'Candidate email already in database'}), 400
 
     try:
-        # Create candidate
+        # Create candidate 
         new_candidate = Candidate(possible_candidate)
 
         # Add to database
         db.session.add(new_candidate)
         db.session.commit()
+        
+        # Create education entries
+        for entry in possible_candidate['education']:
+            db_entry = Education(new_candidate.id, entry)
+            db.session.add(db_entry)
 
+        # Add to database   
+        db.session.commit()
+        
     except exc.IntegrityError as e:
         # Must rollback
+        print(e)
         db.session().rollback()
         return jsonify({'error' : 'IntegrityError'}), 400
 
@@ -278,12 +222,12 @@ def insert():
 
 
     # Convert from database to a dictionary
-    candidate_dict = dictFromDB(new_candidate)
+    #candidate_dict = dictFromDB(new_candidate)
     
     # Log
-    logger.info("Updated candidate with ID = {}".format(candidate_dict['id']))
+    logger.info("Inserted candidate with ID = {}".format(new_candidate.id))
 
-    return jsonify( { 'inserted': candidate_dict } )
+    return jsonify( { 'inserted': possible_candidate['name'] } )
 
 # ----------------------------------------------------------------------------------
 # Insert a batch of candidates
@@ -319,7 +263,7 @@ def batch_insert():
 
     for candidate in list_candidates:
         # Skip invalid candidates
-        valid, msg = validateCandidate(candidate)
+        valid, msg = aux.validateCandidate(candidate)
         if valid == False:
             invalid_candidates += 1
             print("Error validating candidate {}: {}".format(candidate['name'], msg))
@@ -380,7 +324,7 @@ def update_candidate(candidate_id):
     to_update = request_all()
 
     # Validate candidate
-    valid, msg = validateCandidate(to_update)
+    valid, msg = aux.validateCandidate(to_update)
     if valid == False:
         return jsonify({'error' : msg}), 400
 
@@ -467,234 +411,6 @@ def request_all():
         candidate['tags']  =  request.json['tags']
 
     return candidate
-
-def convertToList(info):
-    ''' Create a list from base64 encoded string'''
-    myList = []
-
-    # If info is empty
-    if info is None:
-        return myList
-
-    # Deserialize
-    info = base64.b64decode(info).decode("utf-8")
-
-    # Remove some characters
-    info = re.sub('\]|"', '', info)
-    info = re.sub('\[', '', info)
-
-    # Conver it to a list
-    myList = info.split(',')
-
-    # If list is NoneType, create a new list
-    if list is None:
-        myList = []
-
-    return myList
-
-def dictFromDB(db_entry):
-    ''' Create a dictionary containing all info drom a database entry'''
-    dict = {}
-
-    dict['experience'] = convertToList(db_entry.experience)
-    dict['education']  = convertToList(db_entry.education)
-    dict['tags']       = convertToList(db_entry.tags)
-
-    # If there is a picture, get contents
-    if db_entry.picture:
-        with open(db_entry.picture, 'rb') as fi:
-            data = fi.read()
-            dict['picture'] = base64.b64encode(data).decode("utf-8")
-    else:
-        dict['picture'] = ""
-
-    # The non-mandatory ones
-    if db_entry.birthdate:
-        # Change to format DD/MM/YYYY
-        dict['birthdate'] = db_entry.birthdate.strftime("%d/%m/%Y")
-
-    if db_entry.latitude:
-        dict['latitude'] = db_entry.latitude
-
-    if db_entry.longitude:
-        dict['longitude'] = db_entry.longitude
-
-    # Finally, the mandatory ones
-    dict['name']    = db_entry.name
-    dict['email']   = db_entry.email
-    dict['gender']  = db_entry.gender
-    dict['phone']   = db_entry.phone
-    dict['address'] = db_entry.address
-    dict['id']      = db_entry.id
-
-    return dict
-
-def validateCandidate(candidate):
-    ''' Validate all parameters for a candidate'''
-
-    # Name is mandatory
-    if 'name' not in candidate:
-        return False, 'Name is mandatory'
-    elif len(candidate['name']) < 1 :
-        return False, 'Invalid name'
-    elif len(candidate['name']) > 80 :
-        return False, 'Name maximum length is 80 characters'
-
-    # Email is mandatory. Check for '@'
-    if 'email' not in candidate:
-        return False, 'Email is mandatory'
-    elif candidate['email'].count('@') != 1:
-        return False, 'Invalid email'
-    elif candidate['email'].count('.') < 1:
-        return False, 'Invalid email'
-    elif len(candidate['email']) > 120 :
-        return False, 'Email maximum length is 120 characters'
-
-    # Gender is mandatory and must be (https://en.wikipedia.org/wiki/ISO/IEC_5218) either:
-    # 0 = not known
-    # 1 = male
-    # 2 = female
-    # 9 = not applicable
-    if 'gender' not in candidate:
-        return False, 'Gender is mandatory'
-    elif candidate['gender'] not in [0, 1, 2, 9]:
-        return False, 'Invalid gender. See https://en.wikipedia.org/wiki/ISO/IEC_5218'
-
-    # Phone is mandatory and should be in the format 11912345678
-    if 'phone' not in candidate:
-        return False, 'Phone is mandatory'
-    else:
-        try:
-            int(candidate['phone'])
-
-            if len(candidate['phone']) < 10:
-                return False, 'Insuficient digits. Phone should be in the format 11912345678'
-            elif len(candidate['phone']) > 12:
-                return False, 'Too many digits. Phone should be in the format 11912345678'
-        except ValueError:
-            return False, 'Phone should be in the format 11912345678 (only numbers)'
-
-
-    # Address is tricky to validate. Let's consider is must be > 5 and <= 120
-    if 'address' not in candidate:
-        return False, 'Address is mandatory'
-    elif len(candidate['address']) < 5 :
-        return False, 'Address must be written with at least 5 characters'
-    elif len(candidate['address']) > 120 :
-        return False, 'Address maximum length is 120 characters'
-
-    # Latitude and longitude are not mandatory, but if present should be floats
-    if 'latitude' in candidate:
-        if candidate['latitude'] is None:
-            # Invalid, so pop this key out of the dictionary
-            candidate.pop('latitude', None)
-        else:
-            try:
-                lat = float(candidate['latitude'])
-
-                if lat > 90.0 or lat < -90.0:
-                    return False, 'Latitude must between -90 and +90'
-            except ValueError:
-                return False, 'Latitude should be a float'
-            except:
-                return False, 'Wrong type for latitude'
-
-    if 'longitude' in candidate:
-        if candidate['longitude'] is None:
-            # Invalid, so pop this key out of the dictionary
-            candidate.pop('longitude', None)
-        else:
-            try:
-                lon = float(candidate['longitude'])
-
-                if lon > 180.0 or lon < -180.0:
-                    return False, 'Longitude must between -180 and +180'
-            except ValueError:
-                return False, 'Longitude should be a float'
-            except:
-                return False, 'Wrong type for longitude'
-
-    # Birthdate is not mandatory, but if present should be in the format DD/MM/YYYY
-    if 'birthdate' in candidate:
-        if candidate['birthdate'] == "":
-            # Invalid, so pop this key out of the dictionary
-            candidate.pop('birthdate', None)
-        else:
-            try:
-                (day, month, year) = candidate['birthdate'].split('/');
-
-                if int(day) < 1 or int(day)> 31:
-                    return False, 'Invalid day for birthdate'
-
-                if int(month) < 1 or int(month)> 12:
-                    return False, 'Invalid month for birthdate'
-
-                if int(year) < 1900 or int(year)> 2018:
-                    return False, 'Invalid year for birthdate'
-
-                # Change format to datetime.date
-                candidate['birthdate'] = datetime.date(int(year), int(month), int(day))
-
-            except:
-                return False, 'Birthdate should be in the format DD/MM/YYYY'
-
-    # Picture: must be either empty or base64 encoded JPEG format
-    if 'picture' in candidate:
-        if candidate['picture'] == "":
-            pass
-        else:
-            try:
-                image_data = base64.b64decode(candidate['picture'])
-                if image_data[:2] != b'\xff\xd8':
-                    return False, 'Picture should be base64 encoded JPEG format'
-                else:
-                    candidate['picture'] = image_data
-            except:
-                return False, 'Picture should be base64 encoded'
-
-    # Experience: should be a list of strings
-    if 'experience' in candidate:
-        if type(candidate['experience']) != type(list()):
-            return False, 'Experience must be a list'
-        else:
-            for item in candidate['experience']:
-                if type(item) != type(str()):
-                    return False, 'Experience must be a list of STRINGS'
-
-        # Serialize the list, and then encode it to prevent SQL injection
-        serialized = json.dumps(candidate['experience'])
-        candidate['experience'] = base64.b64encode(serialized.encode("utf-8"))
-
-    # Education: should be a list of strings
-    if 'education' in candidate:
-        if type(candidate['education']) != type(list()):
-            return False, 'Education must be a list'
-        else:
-            for item in candidate['education']:
-                if type(item) != type(str()):
-                    return False, 'Education must be a list of STRINGS'
-
-        # Serialize the list, and then encode it to prevent SQL injection
-        # Use ensure_ascii=False so we don't see \\u00e3o in the string
-        serialized = json.dumps(candidate['education'], ensure_ascii=False)
-        serialized = serialized.encode("utf-8")
-        candidate['education'] = base64.b64encode(serialized)
-
-    # Tags: should be a list of strings
-    if 'tags' in candidate:
-        if type(candidate['tags']) != type(list()):
-            return False, 'Tags must be a list'
-        else:
-            for item in candidate['tags']:
-                if type(item) != type(str()):
-                    return False, 'Tags must be a list of STRINGS'
-
-        # Serialize the list, and then encode it to prevent SQL injection
-        serialized = json.dumps(candidate['tags'])
-        candidate['tags'] = base64.b64encode(serialized.encode("utf-8"))
-
-    return True, ""
-
 
 # ----------------------------------------------------------------------------------
 # Initialize application
