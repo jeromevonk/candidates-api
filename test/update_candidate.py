@@ -11,11 +11,24 @@ import ast
 from get_all_candidates import getAllCandidates
 
 #-------------------------------------------------------------------------------
+# Helper function
+#-------------------------------------------------------------------------------
+def updateCandidate(candidate):
+    try:
+        r = requests.put(url, json = candidate)
+        print(r.status_code)
+        if r.status_code not in range(200, 300):
+            print(r.text)
+
+    except requests.exceptions.RequestException as e:
+        print(e)
+
+#-------------------------------------------------------------------------------
 # Hosted locally or in heroku
 #-------------------------------------------------------------------------------
-LOCAL  = 'http://localhost:5000/candidates/api/v1.0/'
-HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v1.0/'
-AWS    = 'http://candidates-api.sa-east-1.elasticbeanstalk.com/candidates/api/v1.0/'
+LOCAL  = 'http://localhost:5000/candidates/api/v2.0/'
+HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v2.0/'
+AWS    = 'http://candidates-api.sa-east-1.elasticbeanstalk.com/candidates/api/v2.0/'
 
 # Default to localhost
 URL_BASE = LOCAL
@@ -53,16 +66,20 @@ if id_to_update == 0:
 #-------------------------------------------------------------------------------
 # Update a candidate
 #-------------------------------------------------------------------------------
-print("Updating candidate...")
-candidate = { "name" : "Jerome Vergueiro Vonk", "picture" : "", "birthdate" : "18/02/1988", "gender" : 1,
-	          "email" : "vonk2@gmail.com", "phone" : "11912345678", "address" : "Avenida Paulista, 1",
-              "longitude": 12.1314, "latitude": 12.13145, "tags" : ["engineer", "mecathronics"], "experience" : ["Electronic Arts", "Diebold Nixdorf"], "education" : ["USP", "Udacity"]}
 url = URL_BASE + 'candidates/{}'.format(id_to_update)
+candidate = { "name" : "Jerome Vergueiro Vonk", "picture" : "", "birthdate" : "18/02/1988", "gender" : 1,
+              "email" : "vonk@gmail.com", "phone" : "11912345678", "address" : "Avenida Paulista, 1",
+              "longitude": 0, "latitude": 0, "tags" : ["mecathronics", "dutch/brazilian",], "experience" : [], "education" : []}
 
-try:
-    r = requests.put(url, json = candidate)
-    print(r.status_code)
-    print(r.text)
+# Education
+graduation = {"institution" : "USP", "degree" : "Engineering", "date_start" : "01/01/2007", "date_end" : "31/12/2011", "description" : "Mechatronics Engineering is a field between mechanics and elethronics"}
+candidate['education'].append(graduation)
 
-except requests.exceptions.RequestException as e:
-    print(e)
+# Experience
+diebold = {"company" : "Diebold", "job_title" : "Engineer", "date_start" : "01/01/2007", "date_end" : "31/12/2011", "description" : "Mechatronics Engineering is a field between mechanics and elethronics"}
+ea      = {"company" : "EA",      "job_title" : "Tester",   "date_start" : "15/06/2017", "date_end" : "28/09/2018",  "description" : "Localization tester for brazilian portuguese"}
+candidate['experience'].append(diebold)
+candidate['experience'].append(ea)
+
+print("Updating candidate...")
+updateCandidate(candidate)

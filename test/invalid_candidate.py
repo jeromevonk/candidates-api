@@ -7,25 +7,26 @@ import requests
 import sys
 import pytest
 import copy
+from random_candidates import getFakeEducation, getFakeExperience
 
 #-------------------------------------------------------------------------------
 # Helper function
-#------------------------------------------------------------------------------- 
+#-------------------------------------------------------------------------------
 def postInvalidCandidate(candidate):
     try:
         r = requests.post(url, json = candidate)
         print(r.text)
         assert r.status_code == 400
-        
+
     except requests.exceptions.RequestException as e:
         print(e)
 
 #-------------------------------------------------------------------------------
 # Hosted locally or in heroku
-#------------------------------------------------------------------------------- 
-LOCAL  = 'http://localhost:5000/candidates/api/v1.0/'
-HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v1.0/'
-AWS    = 'http://candidates-api.sa-east-1.elasticbeanstalk.com/candidates/api/v1.0/'
+#-------------------------------------------------------------------------------
+LOCAL  = 'http://localhost:5000/candidates/api/v2.0/'
+HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v2.0/'
+AWS    = 'http://candidates-api.sa-east-1.elasticbeanstalk.com/candidates/api/v2.0/'
 
 # Default to localhost
 URL_BASE = LOCAL
@@ -37,7 +38,7 @@ if len(sys.argv) > 1:
     if 'aws' == sys.argv[1]:
         URL_BASE = AWS
 
- 
+
 #-------------------------------------------------------------------------------
 # Insert invalid candidates
 #-------------------------------------------------------------------------------
@@ -48,7 +49,7 @@ template = { "name" : "Jerome Vonkkkie", "picture" : "", "birthdate" : "01/02/19
 
 #-------------------------------------------------------------------------------
 # Invalid / missing name
-#------------------------------------------------------------------------------- 
+#-------------------------------------------------------------------------------
 print("### Inserting candidate(s) with invalid/missing name...")
 invalid_name = copy.deepcopy(template)
 
@@ -66,7 +67,7 @@ postInvalidCandidate(invalid_name)
 
 #-------------------------------------------------------------------------------
 # Missing email
-#-------------------------------------------------------------------------------             
+#-------------------------------------------------------------------------------
 print("### Inserting candidate(s) with missing email...")
 invalid_email = copy.deepcopy(template)
 
@@ -149,7 +150,7 @@ postInvalidCandidate(invalid_address)
 # c) Missing address
 invalid_address.pop('address', None)
 postInvalidCandidate(invalid_address)
-'''
+
 #-------------------------------------------------------------------------------
 # Invalid latitude (optional, but if present should be valid )
 # (see https://en.wikipedia.org/wiki/Decimal_degrees)
@@ -196,7 +197,6 @@ postInvalidCandidate(invalid_longitude)
 invalid_longitude['longitude'] = ''
 postInvalidCandidate(invalid_longitude)
 
-'''
 #-------------------------------------------------------------------------------
 # Invalid birthdate (optional, but if present should be valid )
 # format is DD/MM/YYYY
@@ -240,12 +240,44 @@ postInvalidCandidate(invalid_picture)
 print("### Inserting candidate(s) with invalid experience...")
 invalid_experience = copy.deepcopy(template)
 
-# a) Invalid string
+# a) Not a list
 invalid_experience['experience'] = ""
 postInvalidCandidate(invalid_experience)
 
 # b) List of non-strings
 invalid_experience['experience'] = [1, 2, 3]
+postInvalidCandidate(invalid_experience)
+
+# c) Missing company name
+invalid_experience['experience'].clear()
+exp = getFakeExperience()
+exp.pop('company', None)
+invalid_experience['experience'].append(exp)
+postInvalidCandidate(invalid_experience)
+
+# d) Missing job title name
+invalid_experience['experience'].clear()
+exp = getFakeExperience()
+exp.pop('job_title', None)
+invalid_experience['experience'].append(exp)
+postInvalidCandidate(invalid_experience)
+
+# e) Invalid date_start
+invalid_experience['experience'].clear()
+invalid_experience['experience'].append( getFakeExperience())
+invalid_experience['experience'][0]['date_start'] = "01/13/2027"
+postInvalidCandidate(invalid_experience)
+
+# e) Invalid date_end
+invalid_experience['experience'].clear()
+invalid_experience['experience'].append( getFakeExperience())
+invalid_experience['experience'][0]['date_end'] = "01/12/2027"
+postInvalidCandidate(invalid_experience)
+
+# f) Invalid description
+invalid_experience['experience'].clear()
+invalid_experience['experience'].append( getFakeExperience())
+invalid_experience['experience'][0]['description'] = []
 postInvalidCandidate(invalid_experience)
 
 #-------------------------------------------------------------------------------
@@ -254,7 +286,7 @@ postInvalidCandidate(invalid_experience)
 print("### Inserting candidate(s) with invalid education...")
 invalid_education = copy.deepcopy(template)
 
-# a) Invalid string
+# a) Not a list
 invalid_education['education'] = ""
 postInvalidCandidate(invalid_education)
 
@@ -262,6 +294,37 @@ postInvalidCandidate(invalid_education)
 invalid_education['education'] = [1, 2, 3]
 postInvalidCandidate(invalid_education)
 
+# c) Missing institution name
+invalid_education['education'].clear()
+exp = getFakeEducation()
+exp.pop('institution', None)
+invalid_education['education'].append(exp)
+postInvalidCandidate(invalid_education)
+
+# d) Missing degree name
+invalid_education['education'].clear()
+exp = getFakeEducation()
+exp.pop('degree', None)
+invalid_education['education'].append(exp)
+postInvalidCandidate(invalid_education)
+
+# e) Invalid date_start
+invalid_education['education'].clear()
+invalid_education['education'].append( getFakeEducation())
+invalid_education['education'][0]['date_start'] = "32/12/2027"
+postInvalidCandidate(invalid_education)
+
+# e) Invalid date_end
+invalid_education['education'].clear()
+invalid_education['education'].append( getFakeEducation())
+invalid_education['education'][0]['date_end'] = "01/12/1754"
+postInvalidCandidate(invalid_education)
+
+# f) Invalid description
+invalid_education['education'].clear()
+invalid_education['education'].append( getFakeEducation())
+invalid_education['education'][0]['description'] = {}
+postInvalidCandidate(invalid_education)
 #-------------------------------------------------------------------------------
 # Invalid tags (optional, but if present should be valid )
 #-------------------------------------------------------------------------------

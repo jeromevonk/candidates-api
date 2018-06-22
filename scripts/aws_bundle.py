@@ -8,21 +8,21 @@ def zipdir(path, ziph):
             print(os.path.join(root, file))
             ziph.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(path, '..')))
 
-zf = zipfile.ZipFile('bundle_aws.zip', mode='w', compression=zipfile.ZIP_DEFLATED)
+zf = zipfile.ZipFile('../bundle_aws.zip', mode='w', compression=zipfile.ZIP_DEFLATED)
 
-zf.write('candidates_api.py')
-zf.write('requirements.txt')
-zf.write('Pipfile')
-zf.write('Pipfile.lock')
+zf.write('../candidates_api.py', 'candidates_api.py')
+zf.write('../requirements.txt', 'requirements.txt')
+zf.write('../Pipfile', 'Pipfile')
+zf.write('../Pipfile.lock', 'Pipfile.lock')
 
 # Folder 'ebextensions'
-zipdir('.ebextensions/', zf)
+zipdir('../.ebextensions/', zf)
 
 # Folder 'static'
-zipdir('static/', zf)
+zipdir('../static/', zf)
 
 # Folder 'templates'
-zipdir('templates/', zf)
+zipdir('../templates/', zf)
 
 zf.close()
 
