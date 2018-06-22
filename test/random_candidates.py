@@ -78,15 +78,17 @@ def test():
 
 
     if len(sys.argv) > 2:
-        if 'heroku' == sys.argv[1]:
+        print()
+        if 'heroku' == sys.argv[2]:
             URL_BASE = HEROKU
-        if 'aws' == sys.argv[1]:
+        if 'aws' == sys.argv[2]:
             URL_BASE = AWS
 
      
     #-------------------------------------------------------------------------------
     # Insert one candidate with missing information
     #-------------------------------------------------------------------------------
+    print(URL_BASE)
     url = URL_BASE + 'candidates'
     candidate = { "name" : "", "picture" : "", "birthdate" : "", "gender" : 1,
                   "email" : "@random.com", "phone" : "", "address" : "",

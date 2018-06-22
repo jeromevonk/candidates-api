@@ -37,9 +37,9 @@ if candidate_id == 0:
 
 
 if len(sys.argv) > 2:
-    if 'heroku' == sys.argv[1]:
+    if 'heroku' == sys.argv[2]:
         URL_BASE = HEROKU
-    if 'aws' == sys.argv[1]:
+    if 'aws' == sys.argv[2]:
         URL_BASE = AWS
 
 _pswd  = getpass.getpass('Password: ')
