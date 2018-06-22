@@ -88,7 +88,6 @@ def test():
     #-------------------------------------------------------------------------------
     # Insert one candidate with missing information
     #-------------------------------------------------------------------------------
-    print(URL_BASE)
     url = URL_BASE + 'candidates'
     candidate = { "name" : "", "picture" : "", "birthdate" : "", "gender" : 1,
                   "email" : "@random.com", "phone" : "", "address" : "",
