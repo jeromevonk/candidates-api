@@ -11,9 +11,9 @@ import json
 #-------------------------------------------------------------------------------
 # Hosted locally or in heroku
 #-------------------------------------------------------------------------------
-LOCAL  = 'http://localhost:5000/candidates/api/v1.0/'
-HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v1.0/'
-AWS    = 'http://candidates-api.sa-east-1.elasticbeanstalk.com/candidates/api/v1.0/'
+LOCAL  = 'http://localhost:5000/candidates/api/v2.0/'
+HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v2.0/'
+AWS    = 'http://candidates-api.sa-east-1.elasticbeanstalk.com/candidates/api/v2.0/'
 
 # Default to localhost
 URL_BASE = LOCAL
@@ -34,7 +34,7 @@ def getAllCandidates():
     try:
         r = requests.get(url)
         print(r.status_code)
-        print(r.text)
+        #print(r.text)
 
     except requests.exceptions.RequestException as e:
         print(e)
@@ -54,7 +54,6 @@ if __name__ == '__main__':
     # Print some information
     print("Number of candidates in database: {}".format(len(data['candidates'])) )
 
-    # Print the IDs
-    print("IDs")
+    # Print info from candidates
     for candidate in data['candidates']:
-        print(candidate['id'])
+        print("Candidate named {} with ID={}".format(candidate['name'], candidate['id']))

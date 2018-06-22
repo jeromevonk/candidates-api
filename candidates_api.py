@@ -6,9 +6,8 @@
 
 from flask import Flask, jsonify, abort, request, make_response, url_for, render_template
 from flask_httpauth import HTTPBasicAuth
-
 from sqlalchemy import exc
-from flask_marshmallow import Marshmallow
+
 from zipfile import ZipFile, BadZipfile
 import json
 import os
@@ -22,8 +21,8 @@ import logging
 
 # My modules
 import auxiliar as aux
-from models import db, Candidate, Education
-REQUIRED = ['name', 'email', 'gender', 'phone', 'address'] #TODO find a better way
+from models import *
+REQUIRED = ['name', 'email', 'gender', 'phone', 'address', 'education', 'experience', 'tags' ] #TODO find a better way
 
 # ----------------------------------------------------------------------------------
 # Different platform configurations
@@ -40,7 +39,7 @@ logger = logging.getLogger('candidates_api')
 logger.setLevel(logging.DEBUG)
 
 # Create file handler and formatter
-fh = logging.FileHandler(log_file)
+fh = logging.FileHandler(log_file, encoding = "UTF-8")
 fh.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -51,6 +50,7 @@ logger.addHandler(fh)
 # ----------------------------------------------------------------------------------
 # Initialization
 # ----------------------------------------------------------------------------------
+logger.info("App started at {}".format(datetime.datetime.now()))
 application = Flask(__name__, static_url_path = "")
 app = application #dirty trick for elastib beanstalk. see (http://blog.uptill3.com/2012/08/25/python-on-elastic-beanstalk.html)
 auth = HTTPBasicAuth()
@@ -71,9 +71,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize the database
 with app.app_context():
     db.init_app(app)
-    db.create_all() 
-    
-   
+    db.create_all()
 
 # Password is stored as a salted SHA-256 hash
 # Dictionary contains username as a key, then a tuple pair of hashed password and salt
@@ -124,7 +122,7 @@ def start_page():
 # ----------------------------------------------------------------------------------
 # Get list of candidates
 # ----------------------------------------------------------------------------------
-@app.route('/candidates/api/v1.0/candidates', methods = ['GET'])
+@app.route('/candidates/api/v2.0/candidates', methods = ['GET'])
 def get_candidates():
     ''' Get all candidate's information from database '''
 
@@ -137,18 +135,19 @@ def get_candidates():
     # Necessary step before sending to client
     for candidate in all_candidates:
 
-        # Convert from database to a dictionary
-        candidate_dict = dictFromDB(candidate)
+        # Temporary: mount response
+        candidate_full = candidate_schema.dump(candidate).data
+        aux.combineSchemas(candidate_full, candidate.id)
 
         # Add to list
-        to_return.append(candidate_dict)
+        to_return.append(candidate_full)
 
     return jsonify( { 'candidates': to_return } )
 
 # ----------------------------------------------------------------------------------
 # Get a single candidate
 # ----------------------------------------------------------------------------------
-@app.route('/candidates/api/v1.0/candidates/<int:candidate_id>', methods = ['GET'])
+@app.route('/candidates/api/v2.0/candidates/<int:candidate_id>', methods = ['GET'])
 def get_candidate(candidate_id):
     ''' Get a candidate information from database '''
 
@@ -157,16 +156,17 @@ def get_candidate(candidate_id):
     if candidate is None:
         # Invalid id
         return jsonify({'error' : 'No candidate with ID = {} in database'.format(candidate_id) } ), 400
+    
+    # Temporary: mount response
+    candidate_full = candidate_schema.dump(candidate).data
+    aux.combineSchemas(candidate_full, candidate.id)
 
-    # Convert from database to a dictionary
-    candidate_dict = dictFromDB(candidate)
-
-    return jsonify( { 'candidate': candidate_dict } )
+    return jsonify( { 'candidate': candidate_full } )
 
 # ----------------------------------------------------------------------------------
 # Insert a single candidate
 # ----------------------------------------------------------------------------------
-@app.route('/candidates/api/v1.0/candidates', methods = ['POST'])
+@app.route('/candidates/api/v2.0/candidates', methods = ['POST'])
 def insert():
     ''' Insert a candidate on the database  '''
     if not request.json:
@@ -174,8 +174,8 @@ def insert():
 
     for parameter in REQUIRED:
         if not parameter in request.json:
-            print("MISSING: ", parameter)
-            return jsonify({'error' : 'Missing one or more required parameters {}'.format(REQUIRED) } ), 400
+            logger.error('Missing parameter: {}'.format(parameter))
+            return jsonify({'error' : 'Missing required parameter: {}'.format(parameter) } ), 400
 
     # Get parameters from Flask's request
     possible_candidate = request_all()
@@ -187,28 +187,18 @@ def insert():
 
     # Is the candidate name already in the database?
     if Candidate.query.filter_by(name = possible_candidate['name']).first() is not None:
+        logger.error("Candidate named '{}' already in database".format(possible_candidate['name']) )
         return jsonify({'error' : 'Candidate name already in database'}), 400
 
     # Is the candidate email already in the database?
     if Candidate.query.filter_by(email = possible_candidate['email']).first() is not None:
+        logger.error("Candidate with email '{}' already in database".format(possible_candidate['email']) )
         return jsonify({'error' : 'Candidate email already in database'}), 400
 
     try:
-        # Create candidate 
-        new_candidate = Candidate(possible_candidate)
+        logger.info(possible_candidate)
+        db_candidate = insert_on_database(possible_candidate)
 
-        # Add to database
-        db.session.add(new_candidate)
-        db.session.commit()
-        
-        # Create education entries
-        for entry in possible_candidate['education']:
-            db_entry = Education(new_candidate.id, entry)
-            db.session.add(db_entry)
-
-        # Add to database   
-        db.session.commit()
-        
     except exc.IntegrityError as e:
         # Must rollback
         print(e)
@@ -220,19 +210,19 @@ def insert():
         traceback.print_exception(exc_type, exc_value, exc_traceback)
         return jsonify({'error' : 'Internal error'}), 500
 
-
-    # Convert from database to a dictionary
-    #candidate_dict = dictFromDB(new_candidate)
-    
     # Log
-    logger.info("Inserted candidate with ID = {}".format(new_candidate.id))
+    logger.info("Inserted candidate with ID = {}".format(db_candidate.id))
 
-    return jsonify( { 'inserted': possible_candidate['name'] } )
+    # Temporary: mount response
+    candidate_full = candidate_schema.dump(db_candidate).data
+    aux.combineSchemas(candidate_full, db_candidate.id )
+
+    return jsonify( { 'inserted': candidate_full } )
 
 # ----------------------------------------------------------------------------------
 # Insert a batch of candidates
 # ----------------------------------------------------------------------------------
-@app.route('/candidates/api/v1.0/candidates/batch', methods = ['POST'])
+@app.route('/candidates/api/v2.0/candidates/batch', methods = ['POST'])
 def batch_insert():
     ''' Insert or updated candidates from a batch of json files '''
     # Retrieve the zip file
@@ -251,7 +241,7 @@ def batch_insert():
     except:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback)
-        return jsonify({'error' : 'Invalid json files inside zip file'}), 400
+        return jsonify({'error' : 'At least one invalid json file inside zip file'}), 400
 
     if not list_candidates:
         return jsonify({'error' : 'No valid .json files inside zip file'}), 400
@@ -266,42 +256,37 @@ def batch_insert():
         valid, msg = aux.validateCandidate(candidate)
         if valid == False:
             invalid_candidates += 1
-            print("Error validating candidate {}: {}".format(candidate['name'], msg))
+            print()
+            logger.info("Error validating candidate {}: {}".format(candidate['name'], msg))
             continue
 
         # Candidate already in database?
         db_candidate = Candidate.query.filter_by(name = candidate['name']).first()
+        
+        try:
+            # Candidate does not exist in database
+            if db_candidate is None:
+                # Insert
+                insert_on_database(candidate)
+                candidates_added += 1
 
-        # Candidate does not exist in database
-        if db_candidate is None:
-            try:
-                # Create candidate
-                new_cand = Candidate(candidate)
+            # Candidate exists in database
+            else:
+                # Update
+                update_on_database(db_candidate, candidate)
+                candidates_updated += 1
+                
+        except exc.IntegrityError as e:
+            # Must rollback
+            print(e)
+            db.session().rollback()
+            return jsonify({'error' : 'IntegrityError'}), 400
 
-                # Add to database
-                db.session.add(new_cand)
-                db.session.commit()
+        except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+            return jsonify({'error' : 'Internal error'}), 500
 
-                candidates_added   += 1
-
-            except exc.IntegrityError as e:
-                # Must rollback
-                print(e)
-                db.session().rollback()
-                return jsonify({'error' : 'IntegrityError'}), 400
-
-            except:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                traceback.print_exception(exc_type, exc_value, exc_traceback)
-                return jsonify({'error' : 'Internal error'}), 500
-
-        # Candidate exists in database
-        else:
-            # Update
-            db_candidate.update(candidate)
-            db.session.commit()
-            candidates_updated += 1
-            
     # Log
     logger.info("Batch insert | Added : {}, Updated : {}, Invalid: {}".format(candidates_added, candidates_updated, invalid_candidates))
 
@@ -310,7 +295,7 @@ def batch_insert():
 # ----------------------------------------------------------------------------------
 # Update a candidate
 # ----------------------------------------------------------------------------------
-@app.route('/candidates/api/v1.0/candidates/<int:candidate_id>', methods = ['PUT'])
+@app.route('/candidates/api/v2.0/candidates/<int:candidate_id>', methods = ['PUT'])
 def update_candidate(candidate_id):
     ''' Update a candidate information in database '''
 
@@ -328,49 +313,67 @@ def update_candidate(candidate_id):
     if valid == False:
         return jsonify({'error' : msg}), 400
 
-    # Update
-    db_candidate.update(to_update)
-    db.session.commit()
+    try:
+        update_on_database(db_candidate, to_update)
+        
+    except exc.IntegrityError as e:
+        # Must rollback
+        print(e)
+        db.session().rollback()
+        return jsonify({'error' : 'IntegrityError'}), 400
 
-    # Convert from database to a dictionary
-    candidate_dict = dictFromDB(db_candidate)
-    
+    except:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback)
+        return jsonify({'error' : 'Internal error'}), 500
+
+
+    # Temporary: mount response
+    candidate_full = candidate_schema.dump(db_candidate).data
+    aux.combineSchemas(candidate_full, db_candidate.id )
+
     # Log
     logger.info("Updated candidate with ID = {}".format(candidate_id))
 
-    return jsonify( { 'updated': candidate_dict } )
+    return jsonify( { 'updated': candidate_full } )
 
 # ----------------------------------------------------------------------------------
 # Delete a candidate
 # ----------------------------------------------------------------------------------
-@app.route('/candidates/api/v1.0/candidates/<int:candidate_id>', methods = ['DELETE'])
+@app.route('/candidates/api/v2.0/candidates/<int:candidate_id>', methods = ['DELETE'])
 @auth.login_required
 def delete_candidate(candidate_id):
     ''' Delete one candidate from database '''
     candidate = Candidate.query.get(candidate_id)
     if candidate is None:
-        # Invalid id
-        abort(404)
+        return jsonify({'error' : 'No candidate with id = {} on database'.format(candidate_id)}), 404
 
-    db.session.delete(candidate)
+    # Delete
+    db.session.query(Tags).filter_by(candidate_id = candidate_id).delete()
+    db.session.query(Experience).filter_by(candidate_id = candidate_id).delete()
+    db.session.query(Education).filter_by(candidate_id = candidate_id).delete()
+    db.session.query(Candidate).filter_by(id = candidate_id).delete()
+
     db.session.commit()
-    
+
     # Log
     logger.info("Deleted candidate with ID = {}".format(candidate_id))
 
     return jsonify( { 'result': True } )
 
-
 # ----------------------------------------------------------------------------------
-# Delete all candidate
+# Delete all candidates
 # ----------------------------------------------------------------------------------
-@app.route('/candidates/api/v1.0/candidates', methods = ['DELETE'])
+@app.route('/candidates/api/v2.0/candidates', methods = ['DELETE'])
 @auth.login_required
 def delete_all():
     ''' Delete all candidates from database '''
+    db.session.query(Tags).delete()
+    db.session.query(Experience).delete()
+    db.session.query(Education).delete()
     db.session.query(Candidate).delete()
     db.session.commit()
-    
+
     # Log
     logger.info("Deleted all candidates")
 
@@ -412,6 +415,59 @@ def request_all():
 
     return candidate
 
+def insert_on_database(candidate):
+
+    # Create candidate
+    db_candidate = Candidate(candidate)
+
+    # Add to database
+    db.session.add(db_candidate)
+
+    # Create education entries
+    for entry in candidate['education']:
+        db_entry = Education(db_candidate, entry)
+        db.session.add(db_entry)
+
+    # Create experience entries
+    for entry in candidate['experience']:
+        db_entry = Experience(db_candidate, entry)
+        db.session.add(db_entry)
+
+    # Create tag entries
+    for entry in candidate['tags']:
+        db_entry = Tags(db_candidate, entry)
+        db.session.add(db_entry)
+
+    # Add to database
+    db.session.commit()
+    
+    return db_candidate
+
+def update_on_database(db_candidate, to_update):
+    # Update 'Candidate' table
+    db_candidate.update(to_update)
+    
+    # 'Education': erase existing entries and add the new ones
+    db.session.query(Education).filter_by(candidate_id = db_candidate.id).delete()
+    for entry in to_update['education']:
+        db_entry = Education(db_candidate, entry)
+        db.session.add(db_entry)
+
+    # 'Experience': erase existing entries and add the new ones
+    db.session.query(Experience).filter_by(candidate_id = db_candidate.id).delete()
+    for entry in to_update['experience']:
+        db_entry = Experience(db_candidate, entry)
+        db.session.add(db_entry)
+
+    # 'Tags': erase existing entries and add the new ones
+    db.session.query(Tags).filter_by(candidate_id = db_candidate.id).delete()
+    for entry in to_update['tags']:
+        db_entry = Tags(db_candidate, entry)
+        db.session.add(db_entry)
+
+    # Add to database
+    db.session.commit()
+      
 # ----------------------------------------------------------------------------------
 # Initialize application
 # ----------------------------------------------------------------------------------

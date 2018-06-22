@@ -43,13 +43,33 @@ Password: 123
 | Email      |    Yes     | String                                                       |
 | Phone      |    Yes     | Only numbers: 11912345678                                    |
 | Address    |    Yes     | String                                                       |
+| Experience |     No     | List of Dictionaries (see below)                                              |
+| Education  |     No     | List of Dictionaries (see below)                                              |
+| Tags       |     No     | List of Strings                                              |
 | Birthdate  |     No     | DD/MM/YYYY                                                   |
 | Latitude   |     No     | Float                                                        |
 | Longitude  |     No     | Float                                                        |
-| Tags       |     No     | List of Strings                                              |
-| Experience |     No     | List of Strings                                              |
-| Education  |     No     | List of Strings                                              |
 | Picture    |     No     | Base64 encoded JPEG format                                   |
+
+#### Education dictionary
+
+| FIELD       | FORMAT     |
+| :---------- | :--------- |
+| Institution | String     |
+| Degree      | String     |
+| Date start  | DD/MM/YYYY |
+| Date end    | DD/MM/YYYY |
+| Description | String     |
+
+#### Experience dictionary
+
+| FIELD       | FORMAT     |
+| :---------- | :--------- |
+| Company     | String     |
+| Job Title   | String     |
+| Date start  | DD/MM/YYYY |
+| Date end    | DD/MM/YYYY |
+| Description | String     |
 
 #### Instructions
 
@@ -59,19 +79,38 @@ In order to send a batch of candidates, the following must be met:
 - Make a post request to /candidates/api/v1.0/candidates/batch with `enctype="multipart/form-data"` and `name="zipfile"`
 
 A sample canditate.json file should look like this:
-```
+```xml
 {
-    "name" : "Jerome Vergueiro Vonk",
-    "birthdate" : "18/02/1988",
-    "gender" : 1,
-    "email" : "vonk@gmail.com",
-    "phone" : "11912345678",
-    "address" : "Avenida Paulista, 1",
-    "longitude": 9.96233,
-    "latitude": 49.80404,
-    "tags" : ["engineer", "mecathronics"],
-    "experience" : ["Electronic Arts", "Diebold Nixdorf"],
-    "education" : ["USP", "Udacity"]
+	"name": "Jerome Vergueiro Vonk",
+	"picture": "",
+	"birthdate": "18/02/1988",
+	"gender": 1,
+	"email": "vonk@gmail.com",
+	"phone": "11912345678",
+	"address": "Avenida Paulista, 1",
+	"longitude": 0,
+	"latitude": 0,
+	"tags": ["mecathronics", "dutch/brazilian"],
+	"experience": [{
+		"company": "Diebold",
+		"job_title": "Engineer",
+		"date_start": "01/01/2007",
+		"date_end": "31/12/2011",
+		"description": "Mechatronics Engineering is a field between mechanics and elethronics"
+	}, {
+		"company": "EA",
+		"job_title": "Tester",
+		"date_start": "15/06/2017",
+		"date_end": "28/09/2018",
+		"description": "Localization tester for brazilian portuguese"
+	}],
+	"education": [{
+		"institution": "USP",
+		"degree": "Engineering",
+		"date_start": "01/01/2007",
+		"date_end": "31/12/2011",
+		"description": "Mechatronics Engineering is a field between mechanics and elethronics"
+	}]
 }
 ```
 Kindly have a look a the [test folder](https://github.com/jeromevonk/candidates-api/tree/master/test) for more test examples.

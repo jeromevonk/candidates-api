@@ -9,10 +9,10 @@ import sys
 
 #-------------------------------------------------------------------------------
 # Hosted locally or in heroku
-#------------------------------------------------------------------------------- 
-LOCAL  = 'http://localhost:5000/candidates/api/v1.0/'
-HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v1.0/'
-AWS    = 'http://candidates-api.sa-east-1.elasticbeanstalk.com/candidates/api/v1.0/'
+#-------------------------------------------------------------------------------
+LOCAL  = 'http://localhost:5000/candidates/api/v2.0/'
+HEROKU = 'https://candidates-api.herokuapp.com/candidates/api/v2.0/'
+AWS    = 'http://candidates-api.sa-east-1.elasticbeanstalk.com/candidates/api/v2.0/'
 
 # Default to localhost
 URL_BASE = LOCAL
@@ -27,18 +27,18 @@ if len(sys.argv) > 1:
         candidate_id = int(sys.argv[1])
     except:
         pass
-        
-        
+
+
 if len(sys.argv) > 2:
     if 'heroku' == sys.argv[1]:
         URL_BASE = HEROKU
     if 'aws' == sys.argv[1]:
-        URL_BASE = AWS      
- 
+        URL_BASE = AWS
+
 #-------------------------------------------------------------------------------
 # Get list of candidates
 #-------------------------------------------------------------------------------
-url = URL_BASE + 'candidates/{}'.format(candidate_id) 
+url = URL_BASE + 'candidates/{}'.format(candidate_id)
 
 try:
     r = requests.get(url)

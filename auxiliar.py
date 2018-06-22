@@ -2,66 +2,7 @@ import datetime
 import json
 import base64
 
-def convertToList(info):
-    ''' Create a list from base64 encoded string'''
-    myList = []
-
-    # If info is empty
-    if info is None:
-        return myList
-
-    # Deserialize
-    info = base64.b64decode(info).decode("utf-8")
-
-    # Remove some characters
-    info = re.sub('\]|"', '', info)
-    info = re.sub('\[', '', info)
-
-    # Conver it to a list
-    myList = info.split(',')
-
-    # If list is NoneType, create a new list
-    if list is None:
-        myList = []
-
-    return myList
-
-def dictFromDB(db_entry):
-    ''' Create a dictionary containing all info drom a database entry'''
-    dict = {}
-
-    dict['experience'] = convertToList(db_entry.experience)
-    dict['education']  = convertToList(db_entry.education)
-    dict['tags']       = convertToList(db_entry.tags)
-
-    # If there is a picture, get contents
-    if db_entry.picture:
-        with open(db_entry.picture, 'rb') as fi:
-            data = fi.read()
-            dict['picture'] = base64.b64encode(data).decode("utf-8")
-    else:
-        dict['picture'] = ""
-
-    # The non-mandatory ones
-    if db_entry.birthdate:
-        # Change to format DD/MM/YYYY
-        dict['birthdate'] = db_entry.birthdate.strftime("%d/%m/%Y")
-
-    if db_entry.latitude:
-        dict['latitude'] = db_entry.latitude
-
-    if db_entry.longitude:
-        dict['longitude'] = db_entry.longitude
-
-    # Finally, the mandatory ones
-    dict['name']    = db_entry.name
-    dict['email']   = db_entry.email
-    dict['gender']  = db_entry.gender
-    dict['phone']   = db_entry.phone
-    dict['address'] = db_entry.address
-    dict['id']      = db_entry.id
-
-    return dict
+from models import *
 
 def convertDate(str_date):
     try:
@@ -192,18 +133,43 @@ def validateCandidate(candidate):
             except:
                 return False, 'Picture should be base64 encoded'
 
-    # Experience: should be a list of strings
+    # Experience: should be a list of dictionaries
     if 'experience' in candidate:
         if type(candidate['experience']) != type(list()):
             return False, 'Experience must be a list'
         else:
-            for item in candidate['experience']:
-                if type(item) != type(str()):
-                    return False, 'Experience must be a list of STRINGS'
+            for entry in candidate['experience']:
+                if type(entry) != type(dict()):
+                    return False, 'Experience must be a list of DICTIONARIES'
 
-        # Serialize the list, and then encode it to prevent SQL injection
-        serialized = json.dumps(candidate['experience'])
-        candidate['experience'] = base64.b64encode(serialized.encode("utf-8"))
+                # Now, for every experience entry, check a few things
+                if 'company' not in entry:
+                    return False, 'Company name is mandatory'
+                elif not isinstance(entry['company'], str):
+                    return False, 'Company name must be a string'
+                elif entry['company'] == "":
+                    return False, 'Company name cannot be empty'
+
+                if 'job_title' not in entry:
+                    return False, 'Job title is mandatory'
+                elif not isinstance(entry['job_title'], str):
+                    return False, 'Job title must be a string'
+                elif entry['job_title'] == "":
+                    return False, 'Job title name cannot be empty'
+
+                converted, msg = convertDate(entry['date_start'])
+                if False == converted:
+                    return False, 'Regarding {}, date_start: {}'.format(entry['company'], msg)
+                entry['date_start'] = converted
+
+                converted, msg = convertDate(entry['date_end'])
+                if False == converted:
+                    return False, 'Regarding {}, date_end: {}'.format(entry['company'], msg)
+                entry['date_end'] = converted
+                
+                if 'description' in entry: 
+                    if not isinstance(entry['description'], str):
+                        return False, 'Experience description must be a string'
 
     # Education: should be a list of dictionaries
     if 'education' in candidate:
@@ -217,23 +183,31 @@ def validateCandidate(candidate):
                 # Now, for every education entry, check a few things
                 if 'institution' not in entry:
                     return False, 'Institution name is mandatory'
+                elif not isinstance(entry['institution'], str):
+                    return False, 'Institution must be a string'
                 elif entry['institution'] == "":
                     return False, 'Institution name cannot be empty'
 
-                if 'major' not in entry:
-                    return False, 'Major name is mandatory'
-                elif entry['major'] == "":
-                    return False, 'Major name cannot be empty'
+                if 'degree' not in entry:
+                    return False, 'Degree name is mandatory'
+                elif not isinstance(entry['degree'], str):
+                    return False, 'Degree must be a string'
+                elif entry['degree'] == "":
+                    return False, 'Degree name cannot be empty'
 
                 converted, msg = convertDate(entry['date_start'])
                 if False == converted:
-                    return False, 'Regarding {} date_start: {}'.format(entry['institution'], msg)
+                    return False, 'Regarding {}, date_start: {}'.format(entry['institution'], msg)
                 entry['date_start'] = converted
 
                 converted, msg = convertDate(entry['date_end'])
                 if False == converted:
-                    return False, 'Regarding {} date_end: {}'.format(entry['institution'], msg)
+                    return False, 'Regarding {}, date_end: {}'.format(entry['institution'], msg)
                 entry['date_end'] = converted
+                
+                if 'description' in entry: 
+                    if not isinstance(entry['description'], str):
+                        return False, 'Education description must be a string'
 
     # Tags: should be a list of strings
     if 'tags' in candidate:
@@ -244,9 +218,37 @@ def validateCandidate(candidate):
                 if type(item) != type(str()):
                     return False, 'Tags must be a list of STRINGS'
 
-        # Serialize the list, and then encode it to prevent SQL injection
-        serialized = json.dumps(candidate['tags'])
-        candidate['tags'] = base64.b64encode(serialized.encode("utf-8"))
-
     return True, ""
 
+def combineSchemas(to_return, id ):
+
+    # Get the tags for that user
+    tags = tags_schema.dump(Tags.query.filter_by(candidate_id=id).all()).data
+    to_return['tags'] = [v for item in tags for k,v in item.items() if k == 'tag' ]
+
+    # Get the experience for that user
+    to_return['experience'] = experiences_schema.dump(Experience.query.filter_by(candidate_id = id).all()).data
+    for item in to_return['experience']:
+        item['date_start'] = datetime.datetime.strptime(item['date_start'], ("%Y-%m-%d")).strftime("%d/%m/%Y")
+        item['date_end']   = datetime.datetime.strptime(item['date_end'],   ("%Y-%m-%d")).strftime("%d/%m/%Y")
+
+    # Get the education for that user
+    to_return['education'] = educations_schema.dump(Education.query.filter_by(candidate_id = id).all()).data
+    for item in to_return['education']:
+        item['date_start'] = datetime.datetime.strptime(item['date_start'], ("%Y-%m-%d")).strftime("%d/%m/%Y")
+        item['date_end']   = datetime.datetime.strptime(item['date_end'],   ("%Y-%m-%d")).strftime("%d/%m/%Y")
+    
+    # Change birthdate
+    to_return['birthdate'] = datetime.datetime.strptime(to_return['birthdate'], ("%Y-%m-%d")).strftime("%d/%m/%Y")
+    
+    # If there is a picture, get contents
+    if 'picture' in to_return:
+        if to_return['picture'] != "":
+            try:
+                with open(to_return['picture'].encode('utf-8'), 'rb') as fi:
+                    data = fi.read()
+                    to_return['picture'] = base64.b64encode(data).decode("utf-8")
+            except:
+                to_return['picture'] = ""          
+    else:
+        to_return['picture'] = ""

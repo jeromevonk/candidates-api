@@ -24,7 +24,7 @@
     <div align="center">
         <p>Upload a zip file containing json files to insert in database</p>
         
-        <form action="/candidates/api/v1.0/candidates/batch" method="post" enctype="multipart/form-data" >
+        <form action="/candidates/api/v2.0/candidates/batch" method="post" enctype="multipart/form-data" >
             <label class="btn btn-default btn-file">
                 Browse <input type="file" name="zipfile" style="display: none;">
             </label>
@@ -39,7 +39,7 @@
   <div class="panel-heading">Get a list of all candidates</div>
     <div class="panel-body">
          <div align="center">
-            <form action="/candidates/api/v1.0/candidates" method="get" >
+            <form action="/candidates/api/v2.0/candidates" method="get" >
                 <input type="submit" value="Get candidates" class="btn btn-primary">
             </form>
         </div>
@@ -50,7 +50,7 @@
   <div class="panel-heading">Get a single candidate</div>
       <div class="panel-body">
         <div align="center">
-            <form action="/candidates/api/v1.0/candidates/1" method="get" >
+            <form action="/candidates/api/v2.0/candidates/1" method="get" >
                 <p> ID: <input type="number" name="frmnumero" min="1" max="1" value="1" form="form1">
                     <input type="submit" value="Get candidate" class="btn btn-primary">
                 </p>

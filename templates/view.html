@@ -1,262 +1,376 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Candidates Client</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
-    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.js"></script>
-    <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js'></script>
 </head>
-<body>
-    <div class="navbar">
-        <div class="navbar-inner">
-            <a class="brand" href="#">Candidates Client</a>
-        </div>
-    </div>
 
-    <div class = "container">
-        <div class = "starter-template">
+<body>
+    <nav class="navbar navbar-default">
+        <a class="navbar-brand" href="#">Candidates Client</a>
+    </nav>
+
+    <div class="container">
+        <div class="starter-template">
             <p> By <b>Jerome Vonk</b> - June, 2018 </p>
             <p> Please note that this page is still under construction </p>
             <p> More information <a href="https://github.com/jeromevonk/candidates-api/blob/master/README.md" target="blank">here </a>
-            |  Try uploading a batch <a href="/batch_insert.html" target="blank">here </a> </p>
         </div>
     </div>
 
     <div id="main" class="container">
         <p>
-            <button data-bind="click: beginAdd" class="btn">Add Candidate</button>
-            <button class="btn" onClick="window.location.reload()">Refresh list</button>
+            <button type="button" class="btn btn-default" data-bind="click: beginAdd">Add Candidate</button>
+            <button type="button" class="btn btn-default" onClick="window.location.reload()">Refresh list</button>
+            <label class="btn btn-default btn-file">
+                Batch Upload
+                <input type="file" id="inputBatch" data-bind="event: { change: function() { batch_insert($element.files[0]) } }" style="display: none;" accept="application/zip">
+            </label>
+            <button type="button" class="btn btn-danger" data-bind="click: deleteAll">Delete all</button>
         </p>
-        <table class="table table-striped">
-            <tr>
-                <td><b>Candidate</b></td>
-                <td></td>
-                <td></td>
-                <td><b>Options</b></td></tr>
-            <!-- ko foreach: candidates_array -->
-            <tr>
-                <td>
-                    <p>Name: <b data-bind="text: name"></b></p>
-                    <p>ID: <b data-bind="text: id"></b></p>
-                    <p>Gender: <b data-bind="text: gender"></b></p>
-                    <p>Email: <b data-bind="text: email"></b></p>
-                    <p>Phone: <b data-bind="text: phone"></b></p>
-                    <p>Address: <b data-bind="text: address"></b></p>
-                </td>
-                </td>
-                <td>
-                    <p>Birthdate: <b data-bind="text: birthdate"></b></p>
-                    <p>Latitude: <b data-bind="text: latitude"></b></p>
-                    <p>Longitude: <b data-bind="text: longitude"></b></p>
-                    <p>Education: <b data-bind="text: education"></b></p>
-                    <p>Experience: <b data-bind="text: experience"></b></p>
-                    <p>Tags: <b data-bind="text: tags"></b></p>
-                <td>
-                    <div data-bind="style: { background: 'url(data:image/png;base64,' + picture() + ')'}"></div>
-                    <img alt="" data-bind="attr: { src: 'data:image/png;base64,' + picture() }" />
-                </td>
-                <td>
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">
+                        <h4 class="display-3" align="center">Candidate</h4></th>
+                    <th scope="col">
+                        <h4 class="display-3" align="center">Information</h4></th>
+                    <th scope="col">
+                        <h4 class="display-3" align="center">Education</h4></th>
+                    <th scope="col">
+                        <h4 class="display-3" align="center">Experience</h4></th>
+                    <th scope="col">
+                        <h4 class="display-3" align="center">Options</h4></th>
+                </tr>
+            </thead>
+            <tbody>
 
-                    <p></p>
-                    <button data-bind="click: $parent.beginEdit" class="btn">Edit</button>
-                    <button data-bind="click: $parent.remove" class="btn">Delete</button>
-                    <p></p>
-                </td>
-            </tr>
-            <!-- /ko -->
+                <!-- ko foreach: candidates_array -->
+                <tr>
+                    <td>
+                        <p>
+                            <h4 class="display-4"><span data-bind="text: name"></span></h4></p>
+                        <p><i data-bind="text: email"></i></p>
+                        <p>
+                            <div data-bind="style: { background: 'url(data:image/png;base64,' + picture() + ')'}"></div>
+                            <img alt="" data-bind="attr: { src: 'data:image/png;base64,' + picture() }" />
+                        </p>
+                    </td>
+                    </td>
+                    <td>
+                        <p>Gender: <b data-bind="text: gender"></b></p>
+                        <p>Birthdate: <b data-bind="text: birthdate"></b></p>
+                        <p>Phone: <b data-bind="text: phone"></b></p>
+                        <p>Address: <b data-bind="text: address"></b></p>
+                        <ul class="list-inline">
+                            <li class="list-inline-item">Latitude: <b data-bind="text: latitude"></b></li>
+                            <li class="list-inline-item">Longitude: <b data-bind="text: longitude"></b></li>
+                        </ul>
+                        <p>Tags: <b data-bind="text: tags"></b></p>
+                    </td>
+
+                    <td>
+                        <ul class="list-unstyled">
+                            <!-- ko foreach: education -->
+                            <li><b data-bind="text: degree"></b> degree from <i data-bind="text: institution"></i> </li>
+                            <li><b>From</b> <span data-bind="text: date_start"></span> <b>to</b> <span data-bind="text: date_end"></span></li>
+                            <li><b>Description:</b> <span data-bind="text: description"></span></li>
+                            <hr>
+                            <!-- /ko -->
+                        </ul>
+                    </td>
+
+                    <td>
+                        <ul class="list-unstyled">
+                            <!-- ko foreach: experience -->
+                            <li><b data-bind="text: job_title"></b> @ <i data-bind="text: company"></i> </li>
+                            <li><b>From</b> <span data-bind="text: date_start"></span> <b>to</b> <span data-bind="text: date_end"></span></li>
+                            <li><b>Description:</b> <span data-bind="text: description"></span></li>
+                            <hr>
+                            <!-- /ko -->
+                        </ul>
+                    </td>
+                    <td>
+                        <p></p>
+                        <p>
+                            <button type="button" data-bind="click: $parent.beginEdit" class="btn btn-warning">Edit</button>
+                        </p>
+                        <p>
+                            <button type="button" data-bind="click: $parent.remove" class="btn btn-danger">Delete</button>
+                        </p>
+                        <p></p>
+                    </td>
+                </tr>
+                <!-- /ko -->
+            </tbody>
         </table>
-        
+
     </div>
-    <div id="add" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="addDialogLabel">Add Candidate</h3>
-        </div>
-        <div class="modal-body">
-            <form class="form-horizontal">
-                <div class="control-group">
-                    <label class="control-label" for="inputName">Name</label>
-                    <div class="controls">
-                        <input data-bind="value: name" type="text" id="inputTask" placeholder="Candidate name" style="width: 150px;">
-                    </div>
+    <div id="add" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="exampleModalLabel">Add Candidate</h3>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputGender">Gender</label>
-                    <div class="controls">
-                        <input data-bind="value: gender" type="number" id="inputDescription" placeholder="1" value="1" style="width: 50px;">
-                    </div>
+                <div class="modal-body">
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <label for="inputName" class="col-sm-2 control-label">Name</label>
+                            <input data-bind="value: name" class="form-control" type="text" id="inputName" placeholder="Candidate name" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputEmail" class="col-sm-2 control-label">Email</label>
+                            <input data-bind="value: email" class="form-control" type="email" id="inputEmail" placeholder="fake@example.com" style="width: 200px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputGender" class="col-sm-2 control-label">Gender</label>
+                            <input data-bind="value: gender" class="form-control" type="number" id="inputGender" placeholder="1" style="width: 50px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputPhone" class="col-sm-2 control-label">Phone</label>
+                            <input data-bind="value: phone" class="form-control" type="text" id="inputPhone" placeholder="11912344321" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputAddress" class="col-sm-2 control-label">Address</label>
+                            <input data-bind="value: address" class="form-control" type="text" id="inputAddress" placeholder="Rua..." style="width: 300px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputBirthdate" class="col-sm-2 control-label">Birthdate</label>
+                            <input data-bind="value: birthdate" class="form-control" type="text" id="inputBirthdate" placeholder="11912344321" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputLatitude" class="col-sm-2 control-label">Latitude</label>
+                            <input data-bind="value: latitude" class="form-control" type="number" step=0.0001 id="inputLatitude" placeholder="33.0000" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputLongitude" class="col-sm-2 control-label">Longitude</label>
+                            <input data-bind="value: longitude" class="form-control" type="number" step=0.0001 id="inputLongitude" placeholder="16.6000" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputTags" class="col-sm-2 control-label">Tags</label>
+                            <input data-bind="value: tags" class="form-control" type="text" id="inputTags" placeholder="engineer, student" style="width: 300px;">
+                            <!-- <small id="tagHelp" class="form-text text-muted">Separate tags by commas.</small> -->
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputPicture" class="col-sm-2 control-label">Picture</label>
+                            <label class="btn btn-default btn-file">
+                                Browse
+                                <input type="file" id="inputPicture" data-bind="event: { change: function() { uploadImage($element.files[0]) } }" style="display: none;" accept="image/jpeg">
+                            </label>
+                        </div>
+
+                        <hr>
+                        <h4> Experience </h4>
+                        <div class="form-group">
+                            <label for="inputCompany" class="col-sm-2 control-label">Company</label>
+                            <input data-bind="value: company" class="form-control" type="text" id="inputCompany" placeholder="Company name" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputJobTitle" class="col-sm-2 control-label">Job title</label>
+                            <input data-bind="value: job_title" class="form-control" type="text" id="inputJobTitle" placeholder="" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputJobStart" class="col-sm-2 control-label">Start</label>
+                            <input data-bind="value: job_start" class="form-control" type="text" id="inputJobStart" placeholder="dd/mm/yyyy" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputJobEnd" class="col-sm-2 control-label">End</label>
+                            <input data-bind="value: job_end" class="form-control" type="text" id="inputJobEnd" placeholder="dd/mm/yyyy" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputJobDesc" class="col-sm-2 control-label">Description</label>
+                            <input data-bind="value: job_desc" class="form-control" type="text" id="inputJobDesc" placeholder="" style="width: 300px;">
+                        </div>
+
+                        <hr>
+                        <h4> Education </h4>
+                        <div class="form-group">
+                            <label for="inputInstitution" class="col-sm-2 control-label">Institution</label>
+                            <input data-bind="value: institution" class="form-control" type="text" id="inputInstitution" placeholder="Institution name" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputDegree" class="col-sm-2 control-label">Degree</label>
+                            <input data-bind="value: degree" class="form-control" type="text" id="inputDegree" placeholder="" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputEdStart" class="col-sm-2 control-label">Start</label>
+                            <input data-bind="value: ed_start" class="form-control" type="text" id="inputEdStart" placeholder="dd/mm/yyyy" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputEdEnd" class="col-sm-2 control-label">End</label>
+                            <input data-bind="value: ed_end" class="form-control" type="text" id="inputEdEnd" placeholder="dd/mm/yyyy" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputEdDesc" class="col-sm-2 control-label">Description</label>
+                            <input data-bind="value: ed_desc" class="form-control" type="text" id="inputEdDesc" placeholder="" style="width: 300px;">
+                        </div>
+                    </form>
                 </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputEmail">Email</label>
-                    <div class="controls">
-                        <input data-bind="value: email" type="email" id="inputDescription" placeholder="fake@example.com" style="width: 200px;">
-                    </div>
+                <div class="modal-footer">
+                    <button data-bind="click: addCandidate" class="btn btn-primary">Add Candidate</button>
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
                 </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputPhone">Phone</label>
-                    <div class="controls">
-                        <input data-bind="value: phone" type="text" id="inputDescription" placeholder="11912344321" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputAddress">Address</label>
-                    <div class="controls">
-                        <input data-bind="value: address" type="text" id="inputDescription" placeholder="Rua" style="width: 300px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputBirthdate">Birthdate</label>
-                    <div class="controls">
-                        <input data-bind="value: birthdate" type="text" id="inputDescription" placeholder="DD/MM/AAAA" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputLatitude">Latitude</label>
-                    <div class="controls">
-                        <input data-bind="value: latitude" type="number" step=0.0001 id="inputDescription" placeholder="12.0000" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputLongitude">Longitude</label>
-                    <div class="controls">
-                        <input data-bind="value: longitude" type="number" step=0.0001 id="inputDescription" placeholder="12.5556" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputEducation">Education</label>
-                    <div class="controls">
-                        <input data-bind="value: education1" type="text" id="inputEducation1" placeholder="University #1" style="width: 150px;">
-                        <input data-bind="value: education2" type="text" id="inputEducation2" placeholder="University #2" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputExperience">Experience</label>
-                    <div class="controls">
-                        <input data-bind="value: experience1" type="text" id="inputExperience1" placeholder="Job #1" style="width: 150px;">
-                        <input data-bind="value: experience2" type="text" id="inputExperience2" placeholder="Job #2" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputTags">Tags</label>
-                    <div class="controls">
-                        <input data-bind="value: tags1" type="text" id="inputTags1" placeholder="Tag #1" style="width: 150px;">
-                        <input data-bind="value: tags2" type="text" id="inputTags2" placeholder="Tag #2" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="Picture">Picture</label>
-                    <div class="controls">
-                        <label class="btn btn-default btn-file">
-                            Browse <input type="file" data-bind="event: { change: function() { uploadImage($element.files[0]) } }" style="display: none;" accept="image/jpeg">
-                        </label>
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button data-bind="click: addCandidate" class="btn btn-primary">Add Candidate</button>
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-        </div>
-    </div>
-    <div id="edit" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="editDialogLabel" aria-hidden="true">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="editDialogLabel">Edit Candidate</h3>
-        </div>
-        <div class="modal-body">
-            <form class="form-horizontal">
-                <div class="control-group">
-                    <label class="control-label" for="inputName">Name</label>
-                    <div class="controls">
-                        <input data-bind="value: name" type="text" id="inputTask" placeholder="Candidate name" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputGender">Gender</label>
-                    <div class="controls">
-                        <input data-bind="value: gender" type="number" id="inputDescription" placeholder="1" value="1" style="width: 50px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputEmail">Email</label>
-                    <div class="controls">
-                        <input data-bind="value: email" type="email" id="inputDescription" placeholder="fake@example.com" style="width: 200px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputPhone">Phone</label>
-                    <div class="controls">
-                        <input data-bind="value: phone" type="text" id="inputDescription" placeholder="11912344321" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputAddress">Address</label>
-                    <div class="controls">
-                        <input data-bind="value: address" type="text" id="inputDescription" placeholder="Rua" style="width: 300px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputBirthdate">Birthdate</label>
-                    <div class="controls">
-                        <input data-bind="value: birthdate" type="text" id="inputDescription" placeholder="DD/MM/AAAA" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputLatitude">Latitude</label>
-                    <div class="controls">
-                        <input data-bind="value: latitude" type="number" step=0.0001 id="inputDescription" placeholder="12.0000" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputLongitude">Longitude</label>
-                    <div class="controls">
-                        <input data-bind="value: longitude" type="number" step=0.0001 id="inputDescription" placeholder="12.5556" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputEducation">Education</label>
-                    <div class="controls">
-                        <input data-bind="value: education1" type="text" id="inputEducation1" placeholder="University #1" style="width: 150px;">
-                        <input data-bind="value: education2" type="text" id="inputEducation2" placeholder="University #2" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputExperience">Experience</label>
-                    <div class="controls">
-                        <input data-bind="value: experience1" type="text" id="inputExperience1" placeholder="Job #1" style="width: 150px;">
-                        <input data-bind="value: experience2" type="text" id="inputExperience2" placeholder="Job #2" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputTags">Tags</label>
-                    <div class="controls">
-                        <input data-bind="value: tags1" type="text" id="inputTags1" placeholder="Tag #1" style="width: 150px;">
-                        <input data-bind="value: tags2" type="text" id="inputTags2" placeholder="Tag #2" style="width: 150px;">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputPicture">Picture</label>
-                    <div class="controls">
-                        <label class="btn btn-default btn-file">
-                            Browse <input type="file" data-bind="event: { change: function() { uploadImage($element.files[0]) } }" style="display: none;" accept="image/jpeg">
-                        </label>
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button data-bind="click: editCandidate" class="btn btn-primary">Update Candidate</button>
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+            </div>
         </div>
     </div>
 
+    <div id="edit" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="exampleModalLabel">Edit Candidate</h3>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <label for="inputName" class="col-sm-2 control-label">Name</label>
+                            <input data-bind="value: name" class="form-control" type="text" id="inputName" placeholder="Candidate name" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputEmail" class="col-sm-2 control-label">Email</label>
+                            <input data-bind="value: email" class="form-control" type="email" id="inputEmail" placeholder="fake@example.com" style="width: 200px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputGender" class="col-sm-2 control-label">Gender</label>
+                            <input data-bind="value: gender" class="form-control" type="number" id="inputGender" placeholder="1" style="width: 50px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputPhone" class="col-sm-2 control-label">Phone</label>
+                            <input data-bind="value: phone" class="form-control" type="text" id="inputPhone" placeholder="11912344321" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputAddress" class="col-sm-2 control-label">Address</label>
+                            <input data-bind="value: address" class="form-control" type="text" id="inputAddress" placeholder="Rua..." style="width: 300px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputBirthdate" class="col-sm-2 control-label">Birthdate</label>
+                            <input data-bind="value: birthdate" class="form-control" type="text" id="inputBirthdate" placeholder="11912344321" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputLatitude" class="col-sm-2 control-label">Latitude</label>
+                            <input data-bind="value: latitude" class="form-control" type="number" step=0.0001 id="inputLatitude" placeholder="33.0000" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputLongitude" class="col-sm-2 control-label">Longitude</label>
+                            <input data-bind="value: longitude" class="form-control" type="number" step=0.0001 id="inputLongitude" placeholder="16.6000" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputTags" class="col-sm-2 control-label">Tags</label>
+                            <input data-bind="value: tags" class="form-control" type="text" id="inputTags" placeholder="engineer, student" style="width: 300px;">
+                            <!-- <small id="tagHelp" class="form-text text-muted">Separate tags by commas.</small> -->
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputPicture" class="col-sm-2 control-label">Picture</label>
+                            <label class="btn btn-default btn-file">
+                                Browse
+                                <input type="file" id="inputPicture" data-bind="event: { change: function() { uploadImage($element.files[0]) } }" style="display: none;" accept="image/jpeg">
+                            </label>
+                        </div>
+
+                        <hr>
+                        <h4> Experience </h4>
+                        <div class="form-group">
+                            <label for="inputCompany" class="col-sm-2 control-label">Company</label>
+                            <input data-bind="value: company" class="form-control" type="text" id="inputCompany" placeholder="Company name" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputJobTitle" class="col-sm-2 control-label">Job title</label>
+                            <input data-bind="value: job_title" class="form-control" type="text" id="inputJobTitle" placeholder="" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputJobStart" class="col-sm-2 control-label">Start</label>
+                            <input data-bind="value: job_start" class="form-control" type="text" id="inputJobStart" placeholder="dd/mm/yyyy" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputJobEnd" class="col-sm-2 control-label">End</label>
+                            <input data-bind="value: job_end" class="form-control" type="text" id="inputJobEnd" placeholder="dd/mm/yyyy" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputJobDesc" class="col-sm-2 control-label">Description</label>
+                            <input data-bind="value: job_desc" class="form-control" type="text" id="inputJobDesc" placeholder="" style="width: 300px;">
+                        </div>
+
+                        <hr>
+                        <h4> Education </h4>
+                        <div class="form-group">
+                            <label for="inputInstitution" class="col-sm-2 control-label">Institution</label>
+                            <input data-bind="value: institution" class="form-control" type="text" id="inputInstitution" placeholder="Institution name" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputDegree" class="col-sm-2 control-label">Degree</label>
+                            <input data-bind="value: degree" class="form-control" type="text" id="inputDegree" placeholder="" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputEdStart" class="col-sm-2 control-label">Start</label>
+                            <input data-bind="value: ed_start" class="form-control" type="text" id="inputEdStart" placeholder="dd/mm/yyyy" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputEdEnd" class="col-sm-2 control-label">End</label>
+                            <input data-bind="value: ed_end" class="form-control" type="text" id="inputEdEnd" placeholder="dd/mm/yyyy" style="width: 150px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputEdDesc" class="col-sm-2 control-label">Description</label>
+                            <input data-bind="value: ed_desc" class="form-control" type="text" id="inputEdDesc" placeholder="" style="width: 300px;">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button data-bind="click: editCandidate" class="btn btn-primary">Update Candidate</button>
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script type="text/javascript">
         function CandidatesViewModel() {
             var self = this;
-            self.candidatesURI = '../candidates/api/v1.0/candidates';
+            self.candidatesURI = '../candidates/api/v2.0/candidates';
             self.username = "user";
             self.password = "123";
             self.candidates_array = ko.observableArray();
@@ -270,13 +384,29 @@
                     cache: false,
                     dataType: 'json',
                     data: JSON.stringify(data),
-                    beforeSend: function (xhr) {
+                    beforeSend: function(xhr) {
                         xhr.setRequestHeader("Authorization",
                             "Basic " + btoa(self.username + ":" + self.password));
                     },
                     error: function(jqXHR) {
                         console.log("ajax error " + jqXHR.status);
                         <!-- alert("Error!") -->
+                    }
+                };
+                return $.ajax(request);
+            }
+
+            self.ajax_send_batch = function(data) {
+                var request = {
+                    url: '../candidates/api/v2.0/candidates/batch',
+                    data: data,
+                    accepts: "application/json",
+                    processData: false,
+                    contentType: false,
+                    type: 'POST',
+                    error: function(jqXHR) {
+                        console.log("ajax error " + jqXHR.status);
+                        alert("Error! Please check your zip file")
                     }
                 };
                 return $.ajax(request);
@@ -322,6 +452,14 @@
                     });
                 });
             }
+            self.batch_insert = function(zipfile) {
+                formdata = new FormData();
+                formdata.append('zipfile', zipfile)
+                self.ajax_send_batch(formdata).done(function(data) {
+                    alert('Added: ' + data.added + '\n' + 'Invalid: ' + data.invalid + '\n' + 'Updated: ' + data.updated + '\n');
+                    location.reload();
+                });
+            }
             self.beginEdit = function(candidate) {
                 editCandidateViewModel.setCandidate(candidate);
                 $('#edit').modal('show');
@@ -337,6 +475,12 @@
                 });
             }
 
+            self.deleteAll = function() {
+                self.ajax(self.candidatesURI, 'DELETE').done(function() {
+                    self.candidates_array.removeAll();
+                });
+            }
+
             self.ajax(self.candidatesURI, 'GET').done(function(data) {
                 for (var i = 0; i < data.candidates.length; i++) {
                     self.candidates_array.push({
@@ -349,52 +493,59 @@
                         birthdate: ko.observable(data.candidates[i].birthdate),
                         latitude: ko.observable(data.candidates[i].latitude),
                         longitude: ko.observable(data.candidates[i].longitude),
-                        education: ko.observable(data.candidates[i].education),
-                        experience: ko.observable(data.candidates[i].experience),
-                        tags: ko.observable(data.candidates[i].tags),
                         picture: ko.observable(data.candidates[i].picture),
+                        education: ko.observableArray(data.candidates[i].education),
+                        experience: ko.observableArray(data.candidates[i].experience),
+                        tags: ko.observableArray(data.candidates[i].tags),
                     });
                 }
+
             });
         }
+
         function AddCandidateViewModel() {
             var self = this;
-            
-            self.name = ko.observable("");
-            self.gender = ko.observable("");
-            self.email = ko.observable("");
-            self.phone = ko.observable("");
-            self.address = ko.observable("");
-            self.birthdate = ko.observable();
-            self.latitude = ko.observable();
-            self.longitude = ko.observable();
-            self.education1 = ko.observable("");
-            self.education2 = ko.observable("");
-            self.experience1 = ko.observable("");
-            self.experience2 = ko.observable("");
-            self.tags1 = ko.observable("");
-            self.tags2 = ko.observable("");
+
+            self.name = ko.observable("Some dude");
+            self.gender = ko.observable("1");
+            self.email = ko.observable("fake@fake.com");
+            self.phone = ko.observable("11997511245");
+            self.address = ko.observable("Rua dos quatro cantos do mundo");
+            self.birthdate = ko.observable("18/02/1975");
+            self.latitude = ko.observable("0.01");
+            self.longitude = ko.observable("12.345");
             self.picture = "";
-            
-            self.uploadImage = function (file) 
-            {
+            self.tags = ko.observable("dude, man");
+            self.company = ko.observable("LTDA");
+            self.job_title = ko.observable("Owner");
+            self.job_start = ko.observable("01/01/2015");
+            self.job_end = ko.observable("01/01/2016");
+            self.job_desc = ko.observable("Easy");
+            self.institution = ko.observable("UVU");
+            self.degree = ko.observable("Something");
+            self.ed_start = ko.observable("01/01/2007");
+            self.ed_end = ko.observable("01/01/2011");
+            self.ed_desc = ko.observable("Hard");
+
+            self.uploadImage = function(file) {
                 /* Is the file an image? */
                 if (!file || !file.type.match(/image.*/)) return;
-                
-                if (file.size > 100 * 1024 )
-                {
+
+                if (file.size > 100 * 1024) {
                     alert("Sorry, that image is (for now) too big for this poor front-end app! Try smaller than 100KB")
                     return
                 }
 
                 var reader = new FileReader();
-                reader.addEventListener("load", function () { self.picture = reader.result.split(',')[1];}, false);
+                reader.addEventListener("load", function() {
+                    self.picture = reader.result.split(',')[1];
+                }, false);
                 reader.readAsDataURL(file);
             };
-            
-           
+
             self.addCandidate = function() {
                 $('#add').modal('hide');
+
                 to_add = {
                     name: self.name(),
                     gender: parseInt(self.gender(), 10),
@@ -404,14 +555,42 @@
                     birthdate: self.birthdate(),
                     latitude: parseFloat(self.latitude(), 10),
                     longitude: parseFloat(self.longitude(), 10),
-                    education: [self.education1(), self.education2()],
-                    experience: [self.experience1(), self.experience2()],
-                    tags: [self.tags1(), self.tags2()],
                     picture: self.picture,
+                    tags: [self.tags()],
+                }
+
+                <!-- Do we have education data? -->
+                if (self.institution() == "" && self.degree() == "" && self.ed_start() == "" && self.ed_end() == "" && self.ed_desc() == "") {
+                    to_add['education'] = []
+                } else {
+                    _education = {
+                        'institution': self.institution(),
+                        'degree': self.degree(),
+                        'date_start': self.ed_start(),
+                        'date_end': self.ed_end(),
+                        'description': self.ed_desc()
+                    };
+
+                    to_add['education'] = [_education];
+                }
+
+                <!-- Do we have experience data? -->
+                if (self.company() == "" && self.job_title() == "" && self.job_start() == "" && self.job_end() == "" && self.job_desc() == "") {
+                    to_add['experience'] = []
+                } else {
+                    _experience = {
+                        'company': self.company(),
+                        'job_title': self.job_title(),
+                        'date_start': self.job_start(),
+                        'date_end': self.job_end(),
+                        'description': self.job_desc()
+                    };
+
+                    to_add['experience'] = [_experience];
                 }
 
                 candidatesViewModel.add(to_add);
-                
+
                 <!-- Reset -->
                 self.name("");
                 self.gender("");
@@ -421,13 +600,9 @@
                 self.birthdate("");
                 self.latitude("");
                 self.longitude("");
-                self.education1("");
-                self.experience1("");
-                self.tags1("");
-                self.education2("");
-                self.experience2("");
-                self.tags2("");
                 self.picture = "";
+                self.tags("");
+
             }
         }
 
@@ -441,31 +616,36 @@
             self.birthdate = ko.observable();
             self.latitude = ko.observable();
             self.longitude = ko.observable();
-            self.education1 = ko.observable();
-            self.education2 = ko.observable();
-            self.experience1 = ko.observable();
-            self.experience2 = ko.observable();
-            self.tags1 = ko.observable();
-            self.tags2 = ko.observable();
             self.picture = "";
-            
-            self.uploadImage = function (file) 
-            {
+            self.tags = ko.observable();
+            self.company = ko.observable();
+            self.job_title = ko.observable();
+            self.job_start = ko.observable();
+            self.job_end = ko.observable();
+            self.job_desc = ko.observable();
+            self.institution = ko.observable();
+            self.degree = ko.observable();
+            self.ed_start = ko.observable();
+            self.ed_end = ko.observable();
+            self.ed_desc = ko.observable();
+
+            self.uploadImage = function(file) {
                 /* Is the file an image? */
                 if (!file || !file.type.match(/image.*/)) return;
-                
-                if (file.size > 100 * 1024 )
-                {
+
+                if (file.size > 100 * 1024) {
                     alert("Sorry, that image is (for now) too big for this poor front-end app! Try smaller than 100KB")
                     return
                 }
 
                 var reader = new FileReader();
-                reader.addEventListener("load", function () { self.picture = reader.result.split(',')[1];}, false);
+                reader.addEventListener("load", function() {
+                    self.picture = reader.result.split(',')[1];
+                }, false);
                 reader.readAsDataURL(file);
             };
 
-            self.setCandidate= function(candidate) {
+            self.setCandidate = function(candidate) {
                 self.candidate = candidate;
                 self.name(candidate.name());
                 self.gender(candidate.gender());
@@ -475,13 +655,38 @@
                 self.birthdate(candidate.birthdate());
                 self.latitude(candidate.latitude());
                 self.longitude(candidate.longitude());
-                self.education1(candidate.education()[0]);
-                self.experience1(candidate.experience()[0]);
-                self.tags1  (candidate.tags()[0]);
-                self.education2(candidate.education()[1]);
-                self.experience2(candidate.experience()[1]);
-                self.tags2(candidate.tags()[1]);
                 self.picture = candidate.picture;
+                self.tags(candidate.tags());
+
+                <!-- Do we have education information? -->
+                if (candidate.education()[0]) {
+                    self.institution(candidate.education()[0].institution);
+                    self.degree(candidate.education()[0].degree);
+                    self.ed_start(candidate.education()[0].date_start);
+                    self.ed_end(candidate.education()[0].date_end);
+                    self.ed_desc(candidate.education()[0].description);
+                } else {
+                    self.institution("");
+                    self.degree("");
+                    self.ed_start("");
+                    self.ed_end("");
+                    self.ed_desc("");
+                }
+
+                <!-- Do we have experience information? -->
+                if (candidate.experience()[0]) {
+                    self.company(candidate.experience()[0].company);
+                    self.job_title(candidate.experience()[0].job_title);
+                    self.job_start(candidate.experience()[0].date_start);
+                    self.job_end(candidate.experience()[0].date_end);
+                    self.job_desc(candidate.experience()[0].description);
+                } else {
+                    self.company("");
+                    self.job_title("");
+                    self.job_start("");
+                    self.job_end("");
+                    self.job_desc("");
+                }
 
                 $('edit').modal('show');
             }
@@ -489,15 +694,7 @@
             self.editCandidate = function() {
                 $('#edit').modal('hide');
 
-                if ( typeof self.education1() == 'undefined') {self.education1(""); }
-                if ( typeof self.education2() == 'undefined') {self.education2(""); }
-                if ( typeof self.experience1() == 'undefined') {self.experience1(""); }
-                if ( typeof self.experience2() == 'undefined') {self.experience2(""); }
-                if ( typeof self.tags1() == 'undefined') {self.tags1(""); }
-                if ( typeof self.tags2() == 'undefined') {self.tags2(""); }
-
-                edited =
-                {
+                edited = {
                     name: self.name(),
                     gender: parseInt(self.gender(), 10),
                     email: self.email(),
@@ -506,10 +703,44 @@
                     birthdate: self.birthdate(),
                     latitude: parseFloat(self.latitude(), 10),
                     longitude: parseFloat(self.longitude(), 10),
-                    education: [self.education1(), self.education2()],
-                    experience: [self.experience1(), self.experience2()],
-                    tags: [self.tags1(), self.tags2()],
-                    picture: self.picture
+                    picture: self.picture,
+                    tags: self.tags(),
+                    experience: [{
+                        'company': self.company(),
+                        'job_title': self.job_title(),
+                        'date_start': self.job_start(),
+                        'date_end': self.job_end(),
+                        'description': self.job_desc()
+                    }],
+                }
+
+                <!-- Do we have education data? -->
+                if (self.institution() == "" && self.degree() == "" && self.ed_start() == "" && self.ed_end() == "" && self.ed_desc() == "") {
+                    edited['education'] = []
+                } else {
+                    _education = {
+                        'institution': self.institution(),
+                        'degree': self.degree(),
+                        'date_start': self.job_start(),
+                        'date_end': self.job_end(),
+                        'description': self.job_desc()
+                    }
+                    edited['education'] = [_education]
+                }
+
+                <!-- Do we have experience data? -->
+                if (self.company() == "" && self.job_title() == "" && self.job_start() == "" && self.job_end() == "" && self.job_desc() == "") {
+                    edited['experience'] = []
+                } else {
+                    _experience = {
+                        'company': self.company(),
+                        'job_title': self.job_title(),
+                        'date_start': self.job_start(),
+                        'date_end': self.job_end(),
+                        'description': self.job_desc()
+                    };
+
+                    edited['experience'] = [_experience];
                 }
 
                 candidatesViewModel.edit(self.candidate, edited);
@@ -523,13 +754,18 @@
                 self.birthdate("");
                 self.latitude("");
                 self.longitude("");
-                self.education1("");
-                self.education2("");
-                self.experience1("");
-                self.experience2("");
-                self.tags1("");
-                self.tags2("");
                 self.picture = "";
+                self.tags("");
+                self.company("");
+                self.job_title("");
+                self.job_start("");
+                self.job_end("");
+                self.job_desc("");
+                self.institution("");
+                self.degree("");
+                self.ed_start("");
+                self.ed_end("");
+                self.ed_desc("");
             }
         }
 
@@ -541,4 +777,5 @@
         ko.applyBindings(editCandidateViewModel, $('#edit')[0]);
     </script>
 </body>
+
 </html>
