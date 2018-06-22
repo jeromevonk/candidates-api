@@ -4,5 +4,4 @@ private/*
 candidates_api.log
 bundle_aws.zip
 *.sqlite
-static/candidates.sqlite
 *.b64
