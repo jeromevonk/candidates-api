@@ -11,6 +11,8 @@ def zipdir(path, ziph):
 zf = zipfile.ZipFile('../bundle_aws.zip', mode='w', compression=zipfile.ZIP_DEFLATED)
 
 zf.write('../candidates_api.py', 'candidates_api.py')
+zf.write('../auxiliar.py', 'auxiliar.py')
+zf.write('../models.py', 'models.py')
 zf.write('../requirements.txt', 'requirements.txt')
 zf.write('../Pipfile', 'Pipfile')
 zf.write('../Pipfile.lock', 'Pipfile.lock')
