@@ -156,7 +156,7 @@ def get_candidate(candidate_id):
     if candidate is None:
         # Invalid id
         return jsonify({'error' : 'No candidate with ID = {} in database'.format(candidate_id) } ), 400
-    
+
     # Temporary: mount response
     candidate_full = candidate_schema.dump(candidate).data
     aux.combineSchemas(candidate_full, candidate.id)
@@ -262,7 +262,7 @@ def batch_insert():
 
         # Candidate already in database?
         db_candidate = Candidate.query.filter_by(name = candidate['name']).first()
-        
+
         try:
             # Candidate does not exist in database
             if db_candidate is None:
@@ -275,7 +275,7 @@ def batch_insert():
                 # Update
                 update_on_database(db_candidate, candidate)
                 candidates_updated += 1
-                
+
         except exc.IntegrityError as e:
             # Must rollback
             print(e)
@@ -315,7 +315,7 @@ def update_candidate(candidate_id):
 
     try:
         update_on_database(db_candidate, to_update)
-        
+
     except exc.IntegrityError as e:
         # Must rollback
         print(e)
@@ -440,13 +440,13 @@ def insert_on_database(candidate):
 
     # Add to database
     db.session.commit()
-    
+
     return db_candidate
 
 def update_on_database(db_candidate, to_update):
     # Update 'Candidate' table
     db_candidate.update(to_update)
-    
+
     # 'Education': erase existing entries and add the new ones
     db.session.query(Education).filter_by(candidate_id = db_candidate.id).delete()
     for entry in to_update['education']:
@@ -467,9 +467,9 @@ def update_on_database(db_candidate, to_update):
 
     # Add to database
     db.session.commit()
-      
+
 # ----------------------------------------------------------------------------------
-# Initialize application
+# Initialize application (don't run app here)
 # ----------------------------------------------------------------------------------
-if __name__ == '__main__':
-    app.run(debug = True)
+#if __name__ == '__main__':
+#    app.run(debug = True)

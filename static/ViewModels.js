@@ -161,8 +161,8 @@ function AddCandidateViewModel() {
         /* Is the file an image? */
         if (!file || !file.type.match(/image.*/)) return;
 
-        if (file.size > 100 * 1024) {
-            alert("Sorry, that image is (for now) too big for this poor front-end app! Try smaller than 100KB")
+        if (file.size > 2 * 1024 * 1024) {
+            alert("Sorry, that image is (for now) too big for this poor front-end app! Try smaller than 2MB")
             return
         }
 
@@ -263,8 +263,8 @@ function EditCandidateViewModel() {
         /* Is the file an image? */
         if (!file || !file.type.match(/image.*/)) return;
 
-        if (file.size > 100 * 1024) {
-            alert("Sorry, that image is (for now) too big for this poor front-end app! Try smaller than 100KB")
+        if (file.size > 2 * 1024 * 1024) {
+            alert("Sorry, that image is (for now) too big for this poor front-end app! Try smaller than 2MB")
             return
         }
 
