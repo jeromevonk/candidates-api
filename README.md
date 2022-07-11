@@ -10,9 +10,7 @@ Dependencies:
 - flask_marshmallow
 - marshmallow-sqlalchemy
 
-It's hosted on Amazon's Elastic Beanstalk [here](http://candidates-api.sa-east-1.elasticbeanstalk.com/).
-
-It's hosted on heroku [here](https://candidates-api.herokuapp.com/). But as heroku's  filesystem is [ephemeral](https://devcenter.heroku.com/articles/dynos#ephemeral-filesystem), the database gets reset everytime the dyno is restated (under under normal operations, every day)
+It's hosted on heroku [here](https://candidates-api.herokuapp.com/). But as heroku's  filesystem is [ephemeral](https://devcenter.heroku.com/articles/dynos#ephemeral-filesystem), the data gets reset everytime the dyno is restated (under under normal operations, every day)
 
 The API expects documents in JSON format.
 
