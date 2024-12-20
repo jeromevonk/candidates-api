@@ -1,6 +1,0 @@
-Flask
-gunicorn==19.7.1
-flask_sqlalchemy
-flask_marshmallow
-marshmallow-sqlalchemy
-flask_httpauth
